@@ -32,11 +32,14 @@ function App() {
 
   useEffect(() => {
     // Dynamically set the favicon and title to the brand identity when the app loads
-    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/png';
     link.href = '/Eco.png';
-    document.getElementsByTagName('head')[0].appendChild(link);
     document.title = "EcoEquity.Inc";
 
     const handleResize = () => {
