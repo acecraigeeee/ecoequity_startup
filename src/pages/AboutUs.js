@@ -3,9 +3,9 @@ import React from "react";
 function AboutUs() {
   return (
     <div style={styles.wrap}>
-      <div style={styles.badge}>
+      <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
         <span style={styles.badgeDot} />
-        Who We Are
+        <span>Who We Are</span>
       </div>
 
       <h1 style={styles.title}>

@@ -57,6 +57,7 @@ function SustainabilityAppMarket() {
   const renderTable = (data, index) => (
     <div
       key={index}
+      className="inner-blur-glass"
       style={{
         ...styles.tableWrapper,
         ...(isMobile ? styles.tableWrapperMobile : {}),
@@ -95,9 +96,9 @@ function SustainabilityAppMarket() {
         `}
       </style>
 
-      <div style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
+      <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
         <span style={styles.badgeDot} />
-        Who We Serve
+        <span>Who We Serve</span>
       </div>
 
       <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
@@ -262,11 +263,6 @@ const styles = {
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
     overflowX: "auto",
     cursor: "default",
-    transition:
-      "transform 0.22s cubic-bezier(.34,1.56,.64,1), " +
-      "background 0.18s ease, " +
-      "box-shadow 0.22s ease, " +
-      "border-color 0.18s ease",
   },
   tableWrapperMobile: {
     padding: "10px",
@@ -274,10 +270,7 @@ const styles = {
     borderRadius: "15px",
   },
   tableWrapperHov: {
-    transform: "translateY(-6px) scale(1.03)",
-    background: "rgba(255,255,255,0.18)",
-    border: "1px solid rgba(255,255,255,0.30)",
-    boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.35), 0 20px 48px rgba(0,0,0,0.30), 0 0 0 0.5px rgba(255,255,255,0.14)",
+    transform: "scale(1.025)",
   },
   table: {
     width: "100%",

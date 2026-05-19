@@ -196,7 +196,7 @@ function App() {
                         zIndex: 100, 
                         width: isMobile ? "100%" : "auto" 
                       }}>
-                        <div style={{ ...styles.dropdownMenu, ...(isMobile ? styles.dropdownMenuMobile : {}) }}>
+                        <div className="inner-blur-glass" style={{ ...styles.dropdownMenu, ...(isMobile ? styles.dropdownMenuMobile : {}) }}>
                         <button
                           type="button"
                           style={{
@@ -347,7 +347,7 @@ function App() {
                         zIndex: 100, 
                         width: isMobile ? "100%" : "auto" 
                       }}>
-                        <div style={{ ...styles.dropdownMenu, ...(isMobile ? styles.dropdownMenuMobile : {}) }}>
+                        <div className="inner-blur-glass" style={{ ...styles.dropdownMenu, ...(isMobile ? styles.dropdownMenuMobile : {}) }}>
                           <button
                             type="button"
                             style={{
@@ -418,9 +418,9 @@ function App() {
         {activeNav === "Home" && (
           <div style={{ ...styles.hero, ...(isMobile ? styles.heroMobile : {}) }}>
             {/* Badge */}
-            <div style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
+            <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
               <span style={styles.badgeDot} />
-              Agricultural Innovation · Philippines
+              <span style={styles.glassContentLayer}>Agricultural Innovation · Philippines</span>
             </div>
 
             <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
@@ -460,7 +460,8 @@ function App() {
                 onMouseEnter={() => setBtnHovered(true)}
                 onMouseLeave={() => setBtnHovered(false)}
               >
-                Get in Touch {/* Text for the button */}
+                <span aria-hidden="true" style={styles.primaryInnerBlur} />
+                <span style={styles.glassContentLayer}>Get in Touch</span>
               </button>
               <button
                 type="button"
@@ -473,7 +474,8 @@ function App() {
                 onMouseEnter={() => setGhostHovered(true)}
                 onMouseLeave={() => setGhostHovered(false)}
               >
-                Learn More
+                <span aria-hidden="true" style={styles.glassInnerBlur} />
+                <span style={styles.glassContentLayer}>Learn More</span>
               </button>
             </div>
             <div style={{ ...styles.cardRow, ...(isMobile ? styles.cardRowMobile : {}) }}>
@@ -492,10 +494,11 @@ function App() {
                   onMouseEnter={() => setHoveredCard(c.heading)}
                   onMouseLeave={() => setHoveredCard(null)}
                 > 
-                  <span style={{ ...styles.cardIcon, ...(isMobile ? styles.cardIconMobile : {}) }}>
+                  <span aria-hidden="true" style={styles.cardInnerBlur} />
+                  <span style={{ ...styles.cardContentLayer, ...styles.cardIcon, ...(isMobile ? styles.cardIconMobile : {}) }}>
                     {c.icon}</span>
-                  {c.heading && <h3 style={{ ...styles.cardHeading, ...(isMobile ? styles.cardHeadingMobile : {}) }}>{c.heading}</h3>}
-                  {c.text && <p style={{ ...styles.cardText, ...(isMobile ? styles.cardTextMobile : {}) }}>{c.text}</p>}
+                  {c.heading && <h3 style={{ ...styles.cardContentLayer, ...styles.cardHeading, ...(isMobile ? styles.cardHeadingMobile : {}) }}>{c.heading}</h3>}
+                  {c.text && <p style={{ ...styles.cardContentLayer, ...styles.cardText, ...(isMobile ? styles.cardTextMobile : {}) }}>{c.text}</p>}
                 </div>
               ))}
             </div>
@@ -510,6 +513,7 @@ function App() {
               onMouseEnter={() => setStatsStripHovered(true)}
               onMouseLeave={() => setStatsStripHovered(false)}
             >
+              <span aria-hidden="true" style={styles.glassInnerBlur} />
               {[
                 { value: "98%", label: "Company Growth" },
                 { value: "99+", label: "Partners" },
@@ -544,7 +548,8 @@ function App() {
             onMouseEnter={() => setChatHovered(true)}
             onMouseLeave={() => setChatHovered(false)}
           >
-            Chat with AI
+            <span aria-hidden="true" style={styles.glassInnerBlur} />
+            <span style={styles.glassContentLayer}>Chat with AI</span>
           </button>
         )}
 
@@ -589,7 +594,8 @@ function App() {
             onMouseEnter={() => setExploreHovered(true)}
             onMouseLeave={() => setExploreHovered(false)}
           >
-            Explore more
+            <span aria-hidden="true" style={styles.glassInnerBlur} />
+            <span style={styles.glassContentLayer}>Explore more</span>
           </button>
         )}
       </div>
@@ -994,6 +1000,9 @@ const styles = {
   },
 
   primaryBtn: { 
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
     padding: "13px 30px",
     borderRadius: "999px",
     border: "1px solid rgba(255,255,255,0.35)",
@@ -1002,16 +1011,33 @@ const styles = {
     fontSize: "14px",
     fontWeight: 700,
     cursor: "pointer",
+    transform: "scale(1)",
+    transformOrigin: "center",
+    willChange: "transform",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
     fontFamily: "inherit",
     letterSpacing: "0.2px",
     boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)",
-    transition: "transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease",
+    transition: "transform 0.16s ease",
+    backdropFilter: "blur(18px) saturate(165%)",
+    WebkitBackdropFilter: "blur(18px) saturate(165%)",
+  },
+  primaryInnerBlur: {
+    position: "absolute",
+    inset: "0",
+    zIndex: 0,
+    pointerEvents: "none",
+    borderRadius: "inherit",
+    background:
+      "radial-gradient(circle at 28% 18%, rgba(255,255,255,0.35), transparent 42%), " +
+      "linear-gradient(135deg, rgba(134,239,172,0.36), rgba(125,211,252,0.32))",
+    backdropFilter: "blur(34px) saturate(185%)",
+    WebkitBackdropFilter: "blur(34px) saturate(185%)",
   },
 
   primaryBtnHov: {
-    filter: "brightness(1.06)",
-    transform: "translateY(-2px) scale(1.02)",
-    boxShadow: "0 24px 48px rgba(34,197,94,0.34), inset 0 1px 0 rgba(255,255,255,0.55)",
+    transform: "scale(1.035)",
   },
 
   responsiveBtnMobile: {
@@ -1026,6 +1052,9 @@ const styles = {
   },
 
   glassBtn: { 
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
     padding: "13px 28px",
     borderRadius: "999px",
     background: "rgba(255,255,255,0.12)",
@@ -1035,19 +1064,36 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
     transform: "scale(1)", // Default scale for transition
+    transformOrigin: "center",
+    willChange: "transform",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
     fontFamily: "inherit",
     letterSpacing: "0.2px",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.26), 0 14px 30px rgba(0,0,0,0.16)",
-    transition: "background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease",
+    transition: "transform 0.16s ease",
     backdropFilter: "blur(18px) saturate(160%)",
     WebkitBackdropFilter: "blur(18px) saturate(160%)",
   },
+  glassInnerBlur: {
+    position: "absolute",
+    inset: "0",
+    zIndex: 0,
+    pointerEvents: "none",
+    borderRadius: "inherit",
+    background:
+      "radial-gradient(circle at 28% 18%, rgba(255,255,255,0.22), transparent 45%), " +
+      "linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))",
+    backdropFilter: "blur(34px) saturate(185%)",
+    WebkitBackdropFilter: "blur(34px) saturate(185%)",
+  },
+  glassContentLayer: {
+    position: "relative",
+    zIndex: 1,
+  },
 
   glassBtnHov: {
-    background: "rgba(255,255,255,0.18)",
-    borderColor: "rgba(255,255,255,0.38)",
-    transform: "translateY(-2px) scale(1.035)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.34), 0 20px 42px rgba(0,0,0,0.22)",
+    transform: "scale(1.035)",
   },
 
   exploreMoreBtn: {
@@ -1088,6 +1134,9 @@ const styles = {
   },
 
   statsStrip: { 
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1098,16 +1147,16 @@ const styles = {
     boxShadow:
       "inset 0 1px 0 rgba(255,255,255,0.28), 0 18px 44px rgba(0,0,0,0.22)",
     transition:
-      "transform 0.22s cubic-bezier(.34,1.56,.64,1), " +
-      "background 0.18s ease, box-shadow 0.22s ease",
+      "transform 0.22s cubic-bezier(.34,1.56,.64,1)",
+    transformOrigin: "center",
+    willChange: "transform",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
     backdropFilter: "blur(20px) saturate(180%)",
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
   },
   statsStripHov: {
-    background: "linear-gradient(145deg, rgba(255,255,255,0.20), rgba(255,255,255,0.105))",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.32), 0 22px 52px rgba(0,0,0,0.28)",
-    transform: "translateY(-2px) scale(1.005)",
+    transform: "scale(1.015)",
   },
   statsStripMobile: {
     width: "min(86%, 260px)",
@@ -1120,6 +1169,8 @@ const styles = {
     marginTop: "clamp(8px, 1.8dvh, 14px)",
   },
   statCell: {
+    position: "relative",
+    zIndex: 1,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -1177,13 +1228,16 @@ const styles = {
   },
 
   card: {
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
     background: "linear-gradient(150deg, rgba(255,255,255,0.17), rgba(255,255,255,0.07))",
     border: "1px solid rgba(255,255,255,0.18)",
     borderRadius: "16px",
     padding: "12px 14px 14px",
-    flex: "0 1 220px",
-    maxWidth: "240px",
-    minHeight: "150px",
+    flex: "0 1 210px",
+    maxWidth: "230px",
+    height: "auto",
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start", // Changed to justify left the content within the card
@@ -1191,31 +1245,45 @@ const styles = {
     boxShadow:
       "inset 0 1px 0 rgba(255,255,255,0.24), 0 16px 38px rgba(0,0,0,0.18)",
     cursor: "default",
+    transform: "scale(1)",
+    transformOrigin: "center",
+    willChange: "transform",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
     backdropFilter: "blur(20px) saturate(165%)",
     WebkitBackdropFilter: "blur(20px) saturate(165%)",
-    transition:
-      "transform 0.22s cubic-bezier(.34,1.56,.64,1), " +
-      "background 0.18s ease, " +
-      "box-shadow 0.22s ease, " +
-      "border-color 0.18s ease",
+    transition: "transform 0.22s cubic-bezier(.34,1.56,.64,1)",
+  },
+  cardInnerBlur: {
+    position: "absolute",
+    inset: "0",
+    zIndex: 0,
+    pointerEvents: "none",
+    borderRadius: "inherit",
+    background:
+      "radial-gradient(circle at 30% 18%, rgba(255,255,255,0.2), transparent 42%), " +
+      "linear-gradient(155deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03))",
+    backdropFilter: "blur(34px) saturate(180%)",
+    WebkitBackdropFilter: "blur(34px) saturate(180%)",
+    filter: "blur(0.2px)",
+  },
+  cardContentLayer: {
+    position: "relative",
+    zIndex: 1,
   },
   cardMobile: { // New mobile style for card
     flex: "1 1 0",
     width: "auto",
     maxWidth: "none",
     minWidth: 0,
-    minHeight: "100px",
+    height: "auto",
     padding: "clamp(6px, 1dvh, 8px) clamp(5px, 1.6vw, 7px)",
     overflow: "visible",
     alignItems: "center",
     textAlign: "center",
   },
   cardHov: {
-    transform: "translateY(-7px) scale(1.018)",
-    background: "linear-gradient(150deg, rgba(255,255,255,0.23), rgba(255,255,255,0.105))",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.32), 0 24px 52px rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.28)",
+    transform: "scale(1.025)",
   },
 
   cardIcon: {
@@ -1315,6 +1383,7 @@ const styles = {
     background: "rgba(255,255,255,0.12)",
     color: "rgba(255,255,255,0.95)",
   },
+
 };
 
 export default App;

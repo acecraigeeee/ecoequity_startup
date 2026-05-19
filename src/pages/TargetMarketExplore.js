@@ -40,9 +40,9 @@ function TargetMarketExplore() {
       </style>
 
       <div style={styles.headerRow}>
-        <div style={styles.badge}>
+        <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          Who We Serve
+          <span>Who We Serve</span>
         </div>
       </div>
 
@@ -65,6 +65,7 @@ function TargetMarketExplore() {
         {acquisitionCards.map((c) => (
           <div
             key={c.heading}
+            className="inner-blur-glass"
             style={{
               ...styles.card,
               ...(isMobile ? styles.cardMobile : {}),
@@ -219,11 +220,6 @@ const styles = {
     backdropFilter: "blur(20px) saturate(165%)",
     WebkitBackdropFilter: "blur(20px) saturate(165%)",
     cursor: "default",
-    transition:
-      "transform 0.22s cubic-bezier(.34,1.56,.64,1), " +
-      "background 0.18s ease, " +
-      "box-shadow 0.22s ease, " +
-      "border-color 0.18s ease",
   },
   cardMobile: {
     flex: "0 0 280px",
@@ -233,10 +229,7 @@ const styles = {
     scrollSnapStop: "always",
   },
   cardHov: {
-    transform: "translateY(-7px) scale(1.018)",
-    background: "linear-gradient(150deg, rgba(255,255,255,0.23), rgba(255,255,255,0.105))",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.32), 0 24px 52px rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.28)",
+    transform: "scale(1.025)",
   },
   cardHeading: {
     fontSize: "16px",

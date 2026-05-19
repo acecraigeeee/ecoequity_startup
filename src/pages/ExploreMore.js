@@ -9,6 +9,7 @@ function ExploreMore({ setActiveNav }) {
         <div style={styles.backBtnWrap}>
           <button
             type="button"
+            className="inner-blur-glass"
             style={{
               ...styles.backBtn,
               ...(isHovered ? styles.backBtnHov : {}),
@@ -17,12 +18,12 @@ function ExploreMore({ setActiveNav }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           > 
-            ←
+            <span>←</span>
           </button>
         </div>
-        <div style={styles.badge}>
+        <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          Explore More
+          <span>Explore More</span>
         </div>
       </div>
 
@@ -38,7 +39,7 @@ function ExploreMore({ setActiveNav }) {
 
       <div style={styles.circleCol} data-testid="timeline-container">
         <div style={styles.timelineItem}>
-          <div style={styles.circle}>1980</div>
+          <div className="inner-blur-glass glass-hover-zoom" style={styles.circle}><span>1980</span></div>
           <div style={styles.timelineText}>
             <h3 style={styles.timelineHeading}>
               SHIFT FROM SELF-SUFFICIENCY TO IMPORT DEPENDENCY
@@ -49,7 +50,7 @@ function ExploreMore({ setActiveNav }) {
           </div>
         </div>
         <div style={styles.timelineItem}>
-          <div style={styles.circle}>2000</div>
+          <div className="inner-blur-glass glass-hover-zoom" style={styles.circle}><span>2000</span></div>
           <div style={styles.timelineText}>
             <h3 style={styles.timelineHeading}>
               WTO ACCESSION & TRADE LIBERALIZATION
@@ -60,7 +61,7 @@ function ExploreMore({ setActiveNav }) {
           </div>
         </div>
         <div style={styles.timelineItem}>
-          <div style={styles.circle}>2010</div>
+          <div className="inner-blur-glass glass-hover-zoom" style={styles.circle}><span>2010</span></div>
           <div style={styles.timelineText}>
             <h3 style={styles.timelineHeading}>
               GLOBAL PRICE SHOCKS & RAPID URBANIZATION
@@ -71,7 +72,7 @@ function ExploreMore({ setActiveNav }) {
           </div>
         </div>
         <div style={styles.timelineItem}>
-          <div style={styles.circle}>2020</div>
+          <div className="inner-blur-glass glass-hover-zoom" style={styles.circle}><span>2020</span></div>
           <div style={styles.timelineText}>
             <h3 style={styles.timelineHeading}>
               PANDEMIC & SUPPLY CHAIN FRAGILITY
@@ -177,11 +178,9 @@ const styles = {
     fontFamily: "inherit",
     letterSpacing: "0.2px",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 16px rgba(0,0,0,0.12)",
-    transition: "background 0.16s ease, border-color 0.16s ease",
   },
   backBtnHov: {
-    background: "rgba(255,255,255,0.18)",
-    borderColor: "rgba(255,255,255,0.35)",
+    transform: "scale(1.035)",
   },
   circleCol: {
     display: "flex",

@@ -179,6 +179,60 @@ code {
 .animate-float      { animation: float     6s ease-in-out infinite; }
 .animate-spin-slow  { animation: spin-slow 20s linear infinite; }
 
+/* Shared glass treatment for cards, panels, and glass buttons */
+.inner-blur-glass {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transform: scale(1);
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.22s cubic-bezier(.34,1.56,.64,1) !important;
+}
+
+.inner-blur-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255,255,255,0.22), transparent 45%),
+    linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035));
+  backdrop-filter: blur(34px) saturate(185%);
+  -webkit-backdrop-filter: blur(34px) saturate(185%);
+}
+
+.inner-blur-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-hover-zoom:hover {
+  transform: scale(1.025);
+}
+
+.glass-hover-zoom-sm:hover {
+  transform: scale(1.015);
+}
+
+.glass-button-zoom:hover {
+  transform: scale(1.035);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner-blur-glass,
+  .glass-hover-zoom:hover,
+  .glass-hover-zoom-sm:hover,
+  .glass-button-zoom:hover {
+    transform: none;
+    transition: none !important;
+  }
+}
+
 /* Learn More Button Styling */
 .learn-more-button {
   padding: 12px 24px;

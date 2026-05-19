@@ -9,6 +9,7 @@ function LearnMore({ setActiveNav }) {
         <div style={styles.backBtnWrap}>
           <button
             type="button"
+            className="inner-blur-glass"
             style={{
               ...styles.backBtn,
               ...(isHovered ? styles.backBtnHov : {}),
@@ -17,12 +18,12 @@ function LearnMore({ setActiveNav }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           > 
-            ←
+            <span>←</span>
           </button>
         </div>
-        <div style={styles.badge}>
+        <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          Learn More
+          <span>Learn More</span>
         </div>
       </div>
 
@@ -137,11 +138,9 @@ const styles = {
     fontFamily: "inherit",
     letterSpacing: "0.2px",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 16px rgba(0,0,0,0.12)",
-    transition: "background 0.16s ease, border-color 0.16s ease",
   },
   backBtnHov: {
-    background: "rgba(255,255,255,0.18)",
-    borderColor: "rgba(255,255,255,0.35)",
+    transform: "scale(1.035)",
   },
 };
 

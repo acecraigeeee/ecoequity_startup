@@ -2,8 +2,9 @@ import React, { useState } from "react";
 
 function GetInTouch({ setActiveNav }) {
   const [isHovered, setIsHovered] = useState(false);
-
   const [isCardHovered, setIsCardHovered] = useState(false);
+  const [hoveredSocial, setHoveredSocial] = useState(null);
+
   return (
     <div style={styles.wrap}>
       <div style={styles.headerRow}>
@@ -47,6 +48,32 @@ function GetInTouch({ setActiveNav }) {
         <p style={styles.cardText}>0927-427-9760</p>
         <h3 style={{ ...styles.cardHeading, marginTop: "16px" }}>Address</h3>
         <p style={styles.cardText}>Gov Pack Rd. Baguio City, <br />Benguet, 2600, Philippines</p>
+      </div>
+
+      {/* ── SOCIAL MEDIA LINKS ── */}
+      <div style={styles.socialLinksContainer}>
+        {[
+          { name: "Facebook", url: "#", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
+          { name: "Instagram", url: "#", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg> },
+          { name: "X", url: "#", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+          { name: "Threads", url: "#", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.002 0c-6.627 0-12 5.373-12 12s5.373 12 12 12c1.944 0 3.778-.464 5.4-1.278l-1.042-1.782a9.923 9.923 0 01-4.358 1.01c-5.514 0-10-4.486-10-10s4.486-10 10-10c5.514 0 10 4.486 10 10 0 1.957-.611 3.535-1.72 4.444-1.034.847-2.394 1.135-3.64.77-.962-.282-1.637-1.002-1.905-2.028-.27-.08-.553-.135-.853-.135-2.13 0-3.863-1.734-3.863-3.864s1.734-3.863 3.863-3.863c1.782 0 3.28 1.215 3.722 2.854 1.144.153 1.983.824 2.41 1.924.593 1.53.535 3.33-.163 4.8-.755 1.587-2.1 2.658-3.784 3.012-1.634.343-3.4-.047-4.838-1.066-1.577-1.116-2.45-2.88-2.45-4.965 0-4.632 3.768-8.4 8.4-8.4s8.4 3.768 8.4 8.4c0 3.82-2.553 7.042-6.042 8.037V21.4c3.967-1.063 6.942-4.683 6.942-8.987 0-5.523-4.477-10-10-10S2.002 6.477 2.002 12s4.477 10 10 10c2.14 0 4.14-.672 5.79-1.82l1.246 1.246C17.182 23.09 14.685 24 12.002 24zM12 8.136c-2.13 0-3.864 1.734-3.864 3.864s1.734 3.864 3.864 3.864c2.13 0 3.863-1.734 3.863-3.864s-1.733-3.864-3.863-3.864zm0 6c-1.178 0-2.136-.958-2.136-2.136s.958-2.136 2.136-2.136 2.136.958 2.136 2.136-.958 2.136-2.136 2.136z"/></svg> },
+        ].map((social) => (
+          <a
+            key={social.name}
+            href={social.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              ...styles.socialBtn,
+              ...(hoveredSocial === social.name ? styles.socialBtnHov : {}),
+            }}
+            onMouseEnter={() => setHoveredSocial(social.name)}
+            onMouseLeave={() => setHoveredSocial(null)}
+          >
+            <span aria-hidden="true" style={styles.glassInnerBlur} />
+            <span style={styles.glassContentLayer}>{social.icon}</span>
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -187,6 +214,50 @@ const styles = {
   backBtnHov: {
     background: "rgba(255,255,255,0.18)",
     borderColor: "rgba(255,255,255,0.35)",
+  },
+  socialLinksContainer: {
+    marginTop: "24px",
+    display: "flex",
+    gap: "10px",
+    justifyContent: "center",
+  },
+  socialBtn: {
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "9px",
+    background: "rgba(255,255,255,0.12)",
+    border: "1px solid rgba(255,255,255,0.24)",
+    color: "rgba(255,255,255,0.92)",
+    cursor: "pointer",
+    transition: "transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    backdropFilter: "blur(18px) saturate(160%)",
+    WebkitBackdropFilter: "blur(18px) saturate(160%)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.26), 0 10px 20px rgba(0,0,0,0.15)",
+  },
+  socialBtnHov: {
+    transform: "scale(1.18)",
+  },
+  glassInnerBlur: {
+    position: "absolute",
+    inset: "0",
+    zIndex: 0,
+    pointerEvents: "none",
+    borderRadius: "inherit",
+    background:
+      "radial-gradient(circle at 28% 18%, rgba(255,255,255,0.22), transparent 45%), " +
+      "linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))",
+    backdropFilter: "blur(34px) saturate(185%)",
+    WebkitBackdropFilter: "blur(34px) saturate(185%)",
+  },
+  glassContentLayer: {
+    position: "relative",
+    zIndex: 1,
   },
 };
 

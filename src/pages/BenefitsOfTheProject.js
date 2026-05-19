@@ -11,9 +11,9 @@ function BenefitsOfTheProject() {
   }, []);
   return (
     <div style={styles.wrap}>
-      <div style={styles.badge}>
+      <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
         <span style={styles.badgeDot} />
-        Project Advantages
+        <span>Project Advantages</span>
       </div>
 
       <h1 style={styles.title}>
@@ -31,6 +31,7 @@ function BenefitsOfTheProject() {
 
       {/* Horizontal Glass Panel with stats */}
       <div
+        className="inner-blur-glass"
         style={{
           ...styles.statsStrip,
           marginTop: '20px',
@@ -139,23 +140,19 @@ const styles = {
     border: "none",
     boxShadow:
       "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 32px rgba(0,0,0,0.15)",
-    transition:
-      "transform 0.22s cubic-bezier(.34,1.56,.64,1), " +
-      "background 0.18s ease, box-shadow 0.22s ease",
     backdropFilter: "blur(20px) saturate(180%)",
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
   },
   statsStripHov: {
-    background: "rgba(255,255,255,0.12)",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.22), 0 12px 40px rgba(0,0,0,0.2)", 
-    transform: "translateY(-2px) scale(1.005)",
+    transform: "scale(1.015)",
   },
   statsStripMobile: {
     padding: "12px 20px",
   },
 
   statCell: {
+    position: "relative",
+    zIndex: 1,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
