@@ -31,6 +31,14 @@ function App() {
   const [hoveredProductDropdown, setHoveredProductDropdown] = useState(null); // New state for Product & Services dropdown items
 
   useEffect(() => {
+    // Dynamically set the favicon and title to the brand identity when the app loads
+    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/x-icon';
+    link.rel = 'shortcut icon';
+    link.href = '/Eco.png';
+    document.getElementsByTagName('head')[0].appendChild(link);
+    document.title = "EcoEquity.Inc";
+
     const handleResize = () => {
       const nextIsMobile = window.innerWidth < 768;
       setIsMobile(nextIsMobile);

@@ -12,7 +12,7 @@ function OurTeam() {
   }, []);
 
   const team = [
-    { name: "JHUN RUSSEL D. CLEMENTE", role: "ROLE", img: "Russel.jpeg" },
+    { name: "Russel", role: "ROLE", img: "Russel.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus3.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus4.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus5.jpeg" },
