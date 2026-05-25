@@ -3,6 +3,14 @@ import React from "react";
 function AboutUs() {
   return (
     <div style={styles.wrap}>
+      <style>
+        {`
+          @keyframes shimmerLine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+        `}
+      </style>
       <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
         <span style={styles.badgeDot} />
         <span>Who We Are</span>
@@ -87,11 +95,12 @@ const styles = {
   titleUnderline: {
     width: "118px",
     height: "4px",
-    background: "linear-gradient(90deg, rgba(74,222,128,0), #86efac, #7dd3fc, rgba(125,211,252,0))",
+    background: "linear-gradient(90deg, rgba(74,222,128,0) 0%, #86efac 30%, #7dd3fc 50%, #86efac 70%, rgba(125,211,252,0) 100%)",
+    backgroundSize: "200% 100%",
     margin: "0 0 18px",
     boxShadow: "0 0 18px rgba(134,239,172,0.75)",
     borderRadius: "999px",
-    animation: "titleReveal 0.9s cubic-bezier(.22,1,.36,1) 0.15s both",
+    animation: "titleReveal 0.9s cubic-bezier(.22,1,.36,1) 0.15s both, shimmerLine 2.5s linear infinite",
   },
   accent: {
     background: "linear-gradient(90deg, #4ade80, #86efac)",

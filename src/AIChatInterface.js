@@ -794,7 +794,7 @@ const aiChatStyles = {
     right: 0,
     bottom: 0,
     background:
-      "linear-gradient(135deg, rgba(1, 10, 7, 0.94), rgba(2, 20, 16, 0.90))",
+      "linear-gradient(135deg, rgba(27, 103, 77, 0.28), rgba(2, 20, 16, 0.90))",
     backdropFilter: "blur(45px) saturate(150%)",
     WebkitBackdropFilter: "blur(45px) saturate(150%)",
     display: "flex",
