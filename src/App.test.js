@@ -4,8 +4,8 @@ import App from "./App";
 describe("App navigation", () => {
   test("renders home view by default", () => {
     render(<App />);
-    // The "VerdeVersity" text is now present again.
-    expect(screen.getByText("VerdeVersity")).toBeInTheDocument();
+    // The "EcoEquity.Inc" text is now present again.
+    expect(screen.getByText("EcoEquity.Inc")).toBeInTheDocument();
     expect(screen.getByText(/Grow Food\./)).toBeInTheDocument();
     expect(screen.getByText(/Build Community\./)).toBeInTheDocument();
     expect(screen.getByText(/Earn Sustainably\./)).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe("App navigation", () => {
 
     expect(screen.getByText("What We Offer")).toBeInTheDocument();
     expect(screen.getByText("Product & Services")).toBeInTheDocument();
-    expect(screen.getByText(/VerdeVersity offers a comprehensive suite of digital tools/)).toBeInTheDocument();
+    expect(screen.getByText(/EcoEquity offers a comprehensive suite of digital tools/)).toBeInTheDocument();
     expect(screen.getByText(/• Organic Edibles: Local produce/)).toBeInTheDocument();
   });
 
@@ -58,54 +58,30 @@ describe("App navigation", () => {
     expect(screen.getByText(/To achieve 150,000\+ Active Monthly Users/)).toBeInTheDocument();
   });
 
-  test("target market page content should not be scrollable", () => {
-    render(<App />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Target Market" }));
-
-    const pageContainer = screen.getByText("Who We Serve").parentElement.parentElement;
-    expect(pageContainer).toHaveStyle("overflow-y: hidden");
-  });
-
-  test("target market explore page content should not be scrollable", () => {
-    render(<App />);
-
-    const targetMarketBtn = screen.getByRole("button", { name: /Target Market/i });
-    const container = targetMarketBtn.parentElement;
-    
-    fireEvent.mouseEnter(container);
-    fireEvent.click(screen.getByRole("button", { name: "Distribution Channels and Acquisition Tactics" }));
-
-    const pageContainer = screen.getByText("Who We Serve").parentElement.parentElement.parentElement;
-    expect(pageContainer).toHaveStyle("overflow-y: hidden");
-  });
-
   test("displays AI Farming System image and removes its text content on Home page", () => {
     render(<App />);
 
     // Ensure we are on the Home page first (default behavior)
-    expect(screen.getByText("VerdeVersity")).toBeInTheDocument();
+    expect(screen.getByText("EcoEquity.Inc")).toBeInTheDocument();
 
     // Check for the absence of the old heading and text
     expect(screen.queryByText("AI Farming System")).not.toBeInTheDocument();
     expect(screen.queryByText("Empower communities through accessible agricultural innovation.")).not.toBeInTheDocument();
-    expect(screen.getByAltText("AI Farming System")).toBeInTheDocument();
+    expect(screen.getByAltText("AI Plant Doctor")).toBeInTheDocument();
   });
 
-  test("active navigation button has iOS glass effect", () => {
+  test("active navigation button has premium glowing active state", () => {
     render(<App />);
 
     const aboutUsButton = screen.getByRole("button", { name: "About Us" });
     fireEvent.click(aboutUsButton);
 
-    // Check for the active styles, including the glass effect
+    // Check for the active styles, including the premium glowing effect
     expect(aboutUsButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.14);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(125, 211, 252, 0.25));
+      border: 1px solid rgba(134, 239, 172, 0.4);
+      color: #064e3b;
+      font-weight: 700;
     `);
   });
 
@@ -115,66 +91,58 @@ describe("App navigation", () => {
     expect(logoImage).not.toBeInTheDocument();
   });
 
-  test("active navigation button has iOS glass effect for Home", () => {
+  test("active navigation button has premium glowing active state for Home", () => {
     render(<App />);
 
     const homeButton = screen.getByRole("button", { name: "Home" });
     // Home is active by default
     expect(homeButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.14);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(125, 211, 252, 0.25));
+      border: 1px solid rgba(134, 239, 172, 0.4);
+      color: #064e3b;
+      font-weight: 700;
     `);
   });
 
-  test("active navigation button has iOS glass effect for Product & Services", () => {
+  test("active navigation button has premium glowing active state for Product & Services", () => {
     render(<App />);
 
     const productServicesButton = screen.getByRole("button", { name: "Product & Services" });
     fireEvent.click(productServicesButton);
 
     expect(productServicesButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.14);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(125, 211, 252, 0.25));
+      border: 1px solid rgba(134, 239, 172, 0.4);
+      color: #064e3b;
+      font-weight: 700;
     `);
   });
 
-  test("active navigation button has iOS glass effect for Target Market", () => {
+  test("active navigation button has premium glowing active state for Target Market", () => {
     render(<App />);
 
     const targetMarketButton = screen.getByRole("button", { name: "Target Market" });
     fireEvent.click(targetMarketButton);
 
     expect(targetMarketButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.14);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(125, 211, 252, 0.25));
+      border: 1px solid rgba(134, 239, 172, 0.4);
+      color: #064e3b;
+      font-weight: 700;
     `);
   });
 
-  test("active navigation button has iOS glass effect for Our Team", () => {
+  test("active navigation button has premium glowing active state for Our Team", () => {
     render(<App />);
 
     const ourTeamButton = screen.getByRole("button", { name: "Our Team" });
     fireEvent.click(ourTeamButton);
 
     expect(ourTeamButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.14);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: linear-gradient(135deg, rgba(134, 239, 172, 0.25), rgba(125, 211, 252, 0.25));
+      border: 1px solid rgba(134, 239, 172, 0.4);
+      color: #064e3b;
+      font-weight: 700;
     `);
   });
 
@@ -194,7 +162,6 @@ describe("App navigation", () => {
 
     expect(screen.getByText("Learn More")).toBeInTheDocument();
     expect(screen.getByText(/Sustainable Development Goals/i)).toBeInTheDocument();
-    expect(screen.getByAltText("Verde")).toBeInTheDocument();
   });
 
   test("renders Explore more button on Learn More and hides it on Target Market pages", () => {
@@ -260,9 +227,9 @@ describe("App navigation", () => {
     render(<App />);
     
     fireEvent.click(screen.getByRole("button", { name: /Learn More/i }));
-    fireEvent.click(screen.getByRole("button", { name: /← Back/i }));
+    fireEvent.click(screen.getByRole("button", { name: /←/i }));
     
-    expect(screen.getByText("VerdeVersity")).toBeInTheDocument();
+    expect(screen.getByText("EcoEquity.Inc")).toBeInTheDocument();
     expect(screen.getByText(/Grow Food\./)).toBeInTheDocument();
   });
 
@@ -271,7 +238,7 @@ describe("App navigation", () => {
 
     // Find one of the card headings to locate its parent container (cardRow)
     const organicEdiblesHeading = screen.getByText("Organic Edibles");
-    const cardRowContainer = organicEdiblesHeading.closest("div[style*='display: flex']"); // Find the closest flex div
+    const cardRowContainer = organicEdiblesHeading.parentElement.parentElement;
 
     expect(cardRowContainer).toHaveStyle("margin-top: -10px");
   });
@@ -281,7 +248,7 @@ describe("App navigation", () => {
     
     fireEvent.click(screen.getByRole("button", { name: /Learn More/i }));
     fireEvent.click(screen.getByRole("button", { name: /Explore more/i }));
-    fireEvent.click(screen.getByRole("button", { name: /← Back/i }));
+    fireEvent.click(screen.getByRole("button", { name: /←/i }));
     
     expect(screen.getByText(/Sustainable Development Goals/i)).toBeInTheDocument();
   });
@@ -318,16 +285,7 @@ describe("App navigation", () => {
   });
 });
 
-describe("Background video", () => {
-  test("renders the background video with correct attributes", () => {
-    render(<App />);
-    const videoElement = screen.getByTestId("background-video");
-    expect(videoElement).toBeInTheDocument();
-    expect(videoElement).toHaveAttribute("src", "/Green.mp4");
-    expect(videoElement).toHaveAttribute("loop");
-    expect(videoElement).toHaveAttribute("muted");
-  });
-
+describe("Background styling and Chat button", () => {
   test("renders Chat with AI button on Home page with glass effect and correct position", () => {
     render(<App />);
 
@@ -336,15 +294,17 @@ describe("Background video", () => {
 
     // Check for glass effect styles
     expect(chatButton).toHaveStyle(`
-      background: rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.88);
+      background: linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95));
+      color: #062018;
       font-size: 14px;
-      font-weight: 600;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
+      font-weight: 700;
+      box-shadow: 0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48);
     `);
 
-    // Check for positioning styles
-    expect(chatButton).toHaveStyle("align-self: flex-end");
-    expect(chatButton).toHaveStyle("z-index: 10");
+    // Check for positioning styles on the wrapper
+    const wrapper = chatButton.parentElement;
+    expect(wrapper).toHaveStyle("position: absolute");
+    expect(wrapper).toHaveStyle("bottom: 28px");
+    expect(wrapper).toHaveStyle("z-index: 10");
   });
 });

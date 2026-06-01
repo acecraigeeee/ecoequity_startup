@@ -12,7 +12,7 @@ function OurTeam() {
   }, []);
 
   const team = [
-    { name: "Russel", role: "ROLE", img: "Russel.jpeg" },
+    { name: "JHUN RUSSEL D. CLEMENTE", role: "ROLE", img: "Russel.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus3.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus4.jpeg" },
     { name: "NAME", role: "ROLE", img: "Rus5.jpeg" },
@@ -122,14 +122,15 @@ const styles = {
     gap: "7px",
     padding: "5px 14px",
     borderRadius: "999px",
-    background: "rgba(255,255,255,0.13)",
-    border: "none",
+    background: "rgba(255,255,255,0.6)",
+    border: "1px solid rgba(0,0,0,0.05)",
     fontSize: "11px",
     fontWeight: 600,
-    color: "rgba(255,255,255,0.80)",
+    color: "#15803d",
     letterSpacing: "0.6px",
     textTransform: "uppercase",
     marginBottom: "20px",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 12px rgba(0,0,0,0.05)",
   },
   badgeDot: {
     width: "6px",
@@ -142,11 +143,11 @@ const styles = {
   title: {
     fontSize: "clamp(32px, 4.5vw, 50px)",
     fontWeight: 700,
-    color: "#fff",
+    color: "#000",
     margin: "0 0 16px",
     lineHeight: 1.15,
     letterSpacing: "-0.8px",
-    textShadow: "0 2px 20px rgba(0,0,0,0.35)",
+    textShadow: "0 4px 12px rgba(0,0,0,0.1)",
     animation: "titleReveal 0.9s cubic-bezier(.22,1,.36,1) 0.15s both",
   },
   titleUnderline: {
@@ -166,7 +167,7 @@ const styles = {
     backgroundClip: "text",
   },
   body: {
-    color: "rgba(255,255,255,0.62)",
+    color: "#000",
     fontSize: "clamp(14px, 1.5vw, 16px)",
     fontWeight: 400,
     lineHeight: 1.72,
@@ -191,8 +192,8 @@ const styles = {
     scrollPadding: "0 40px",
   },
   card: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))",
+    border: "1px solid rgba(0,0,0,0.05)",
     borderRadius: "20px",
     padding: "32px 24px",
     flex: "0 0 240px",
@@ -200,7 +201,7 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     gap: "10px",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.15)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px rgba(0,0,0,0.05)",
     backdropFilter: "blur(20px) saturate(180%)",
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
     scrollSnapAlign: "center",
@@ -219,8 +220,8 @@ const styles = {
     height: "100px",
     borderRadius: "50%",
     objectFit: "cover",
-    border: "3px solid rgba(255, 255, 255, 0.2)",
-    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
+    border: "3px solid rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
     marginBottom: "8px",
   },
   cardImageMobile: {
@@ -230,7 +231,7 @@ const styles = {
   cardHeading: {
     fontSize: "18px",
     fontWeight: 700,
-    color: "#fff",
+    color: "#000",
     margin: 0,
     letterSpacing: "-0.3px",
   },
@@ -240,7 +241,7 @@ const styles = {
   cardRole: {
     fontSize: "13px",
     fontWeight: 600,
-    color: "#4ade80",
+    color: "#15803d",
     margin: 0,
     textTransform: "uppercase",
     letterSpacing: "0.8px",
@@ -259,7 +260,7 @@ const styles = {
     width: "6px",
     height: "6px",
     borderRadius: "50%",
-    background: "rgba(255, 255, 255, 0.2)",
+    background: "rgba(0, 0, 0, 0.2)",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   },
   dotActive: {

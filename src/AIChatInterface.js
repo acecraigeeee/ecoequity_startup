@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 
 // Core keywords for auto-correction logic
 const CORE_KEYWORDS = [
@@ -20,6 +21,13 @@ const CORE_KEYWORDS = [
   "goals", "sustainability", "products", "services", "edibles",
   "hub", "market", "acquisition", "tactics", "growth", "partners", "customers",
   "history", "timeline", "contact"
+];
+
+const QUICK_PROMPTS = [
+  "How to fix yellowing leaves?",
+  "What is EcoEquity's mission?",
+  "Diagnose my plant",
+  "Recommend organic fertilizers"
 ];
 
 /**
@@ -123,6 +131,16 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
   const [conversationStep, setConversationStep] = useState('initial'); // 'initial', 'awaitingName', 'awaitingContactAndConcern'
   // State for human support escalation
   const [isLiveAgentChat, setIsLiveAgentChat] = useState(false); // To indicate if a live agent is active
+  const [showProModal, setShowProModal] = useState(false); // State for Upgrade to Pro modal
+      const [activePlan, setActivePlan] = useState('Basic'); // Track the user's active plan
+  const [billingCycle, setBillingCycle] = useState('Monthly'); // State for billing cycle in Pro modal
+  const [selectedPlan, setSelectedPlan] = useState('Pro'); // State for selected subscription plan
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // State for Payment form modal
+  const [paymentForm, setPaymentForm] = useState({ name: '', cardNumber: '', expiry: '', cvc: '' });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false); // State for Payment Success pop-up
+  const [paymentMethod, setPaymentMethod] = useState('Credit Card'); // State for selected payment method
+  const [mobilePaymentForm, setMobilePaymentForm] = useState({ mobileNumber: '', accountName: '' }); // State for mobile payments
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -520,12 +538,12 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
     scrollToBottom(); // Scroll to bottom when messages change
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (input.trim()) {
-      const rawInput = input;
-      setInput("");
-      setIsTyping(true);
-
+  const handleSendMessage = async (textOverride) => {
+    const rawInput = typeof textOverride === 'string' ? textOverride : input;
+    if (rawInput.trim()) {
+      if (typeof textOverride !== 'string') {
+        setInput("");
+      }
       // Apply fuzzy keyword correction followed by LanguageTool grammar check
       const fuzzyText = autoCorrect(rawInput);
       const correctedText = await performSentenceCorrection(fuzzyText);
@@ -535,6 +553,8 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
+
+      setIsTyping(true);
 
       let aiResponseObject = { text: "", nextStep: 'initial' };
 
@@ -600,6 +620,12 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
     }
   };
 
+  const isFormValid = paymentMethod === 'Credit Card' 
+    ? paymentForm.name.trim() !== '' && paymentForm.cardNumber.trim() !== '' && paymentForm.expiry.trim() !== '' && paymentForm.cvc.trim() !== ''
+    : mobilePaymentForm.mobileNumber.trim() !== '' && mobilePaymentForm.accountName.trim() !== '';
+    
+  const isPayButtonDisabled = isProcessing || !isFormValid;
+
   return (
     <div style={aiChatStyles.overlay}> {/* Removed onClick={onClose} to prevent closing on overlay click */}
       <div
@@ -634,6 +660,56 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
               scrollbar-width: thin;
               scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
             }
+            @keyframes typingBounce {
+              0%, 80%, 100% { transform: translateY(0); }
+              40% { transform: translateY(-6px); }
+            }
+            .typing-dot {
+              width: 6px;
+              height: 6px;
+              background-color: #15803d;
+              border-radius: 50%;
+              animation: typingBounce 1.4s infinite ease-in-out both;
+            }
+            @keyframes rotateIn3D {
+              0% { opacity: 0; transform: perspective(1200px) rotateX(25deg) translateY(30px) scale(0.9); }
+              100% { opacity: 1; transform: perspective(1200px) rotateX(0) translateY(0) scale(1); }
+            }
+            @keyframes pulseBadge {
+              0% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3); }
+              50% { transform: translateX(-50%) scale(1.05); box-shadow: 0 6px 16px rgba(234, 179, 8, 0.5); }
+              100% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3); }
+            }
+            @keyframes checkmarkPop {
+              0% { transform: scale(0); opacity: 0; }
+              80% { transform: scale(1.15); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+@keyframes successDraw {
+              0% { stroke-dasharray: 50; stroke-dashoffset: 50; }
+              100% { stroke-dasharray: 50; stroke-dashoffset: 0; }
+            }
+            @keyframes backgroundFadeIn {
+              0% { opacity: 0; }
+              100% { opacity: 1; }
+            }
+            @keyframes modalFadeIn {
+              0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+              100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            @keyframes spinFade {
+              0% { transform: rotate(0deg); opacity: 1; }
+              50% { opacity: 0.5; }
+              100% { transform: rotate(360deg); opacity: 1; }
+            }
+            .ring-spinner {
+              width: 20px;
+              height: 20px;
+              border: 3px solid rgba(255, 255, 255, 0.3);
+              border-radius: 50%;
+              border-top-color: #ffffff;
+              animation: spinFade 1s linear infinite;
+            }
           `}
         </style>
         {/* Prevent clicks inside the chat container from closing the chat */}
@@ -648,6 +724,22 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
             </h3>
           </div>
           <div style={aiChatStyles.headerActions}>
+            {activePlan === 'Basic' ? (
+              <button
+                type="button"
+                style={{ ...aiChatStyles.upgradeProBtn, ...(isMobile ? aiChatStyles.upgradeProBtnMobile : {}) }}
+                onClick={() => setShowProModal(true)}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 179, 8, 0.4)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 179, 8, 0.2)'; }}
+              >
+                <span style={{ fontSize: isMobile ? "12px" : "14px", marginTop: "-1px" }}>✨</span> Upgrade to Pro
+              </button>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: isMobile ? "6px 10px" : "8px 14px", borderRadius: "999px", background: activePlan === 'Enterprise' ? "rgba(14, 165, 233, 0.1)" : "rgba(234, 179, 8, 0.1)", color: activePlan === 'Enterprise' ? "#0284c7" : "#ca8a04", fontSize: isMobile ? "11px" : "12px", fontWeight: 800, border: activePlan === 'Enterprise' ? "1px solid rgba(14, 165, 233, 0.2)" : "1px solid rgba(234, 179, 8, 0.2)", cursor: "default", whiteSpace: "nowrap" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                {activePlan} Active
+              </div>
+            )}
             <div style={aiChatStyles.switcherStack}>
               <button onClick={handleToggleBot} style={{ ...aiChatStyles.toggleBotButton, ...(isMobile ? aiChatStyles.toggleBotButtonMobile : {}) }}>
                 {currentBot === 'general' ? 'Plant Doctor' : 'General AI'}
@@ -684,14 +776,29 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
         </div>
         <div style={aiChatStyles.messagesContainer} className="slim-scroll">
           {messages.length === 0 && (
-            <p style={aiChatStyles.welcomeMessage}>
-              {currentBot === 'general'
-                ? "Hi there! I'm EcoEquityBot AI, your dedicated assistant from EcoEquity. How can I assist you with our agricultural innovations and platform today?" // Conversational
-                : isLiveAgentChat
-                  ? `You are connected with a Live Support Agent. Please continue your conversation.`
-                  : "Hello! I'm your AI Plant Doctor, ready to assist you in cultivating healthy plants. Please describe any observations or signs of distress your plants are exhibiting, or tell me what you're growing!"
-              }
-            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: 'auto', gap: '20px' }}>
+              <p style={aiChatStyles.welcomeMessage}>
+                {currentBot === 'general'
+                  ? "Hi there! I'm EcoEquityBot AI, your dedicated assistant from EcoEquity. How can I assist you with our agricultural innovations and platform today?"
+                  : isLiveAgentChat
+                    ? `You are connected with a Live Support Agent. Please continue your conversation.`
+                    : "Hello! I'm your AI Plant Doctor, ready to assist you in cultivating healthy plants. Please describe any observations or signs of distress your plants are exhibiting, or tell me what you're growing!"
+                }
+              </p>
+              <div style={aiChatStyles.quickPromptsContainer}>
+                {QUICK_PROMPTS.map((prompt, i) => (
+                  <button 
+                    key={i} 
+                    style={aiChatStyles.quickPromptBtn} 
+                    onClick={() => handleSendMessage(prompt)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(21, 128, 61, 0.1)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           {messages.map((msg) => (
             <div
@@ -711,22 +818,43 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
             </div>
           ))}
           {isTyping && (
-            <div
-              style={{
-                ...aiChatStyles.messageBubble,
-                ...(isLiveAgentChat ? aiChatStyles.agentMessage : aiChatStyles.aiMessage),
-              }}
-            >
-              {isLiveAgentChat
-                ? 'Human specialist is typing...'
-                : currentBot === 'general'
-                ? 'EcoEquityBot AI is typing...'
-                : 'AI Plant Doctor is typing...'}
+            <div style={{ ...aiChatStyles.messageBubble, ...aiChatStyles.aiMessage, display: 'flex', alignItems: 'center', gap: '4px', padding: '16px' }}>
+              <div className="typing-dot"></div>
+              <div className="typing-dot" style={{ animationDelay: '0.2s' }}></div>
+              <div className="typing-dot" style={{ animationDelay: '0.4s' }}></div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
         <div style={aiChatStyles.inputContainer}>
+          <button
+            type="button"
+            style={{ ...aiChatStyles.iconButton, ...(isMobile ? aiChatStyles.iconButtonMobile : {}) }}
+            aria-label="Voice input"
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.color = '#15803d'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => document.getElementById('imageUploadInput').click()}
+            style={{ ...aiChatStyles.iconButton, ...(isMobile ? aiChatStyles.iconButtonMobile : {}) }}
+            aria-label="Upload image"
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.color = '#15803d'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </button>
           <textarea
             ref={textareaRef}
             className="slim-scroll"
@@ -739,27 +867,6 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
               ? "Type your message to the live agent..." : (currentBot === 'general' ? "Ask about EcoEquity..." : "Ask about your plants...")}
             style={{ ...aiChatStyles.chatInput, ...(isMobile ? aiChatStyles.chatInputMobile : {}) }}
           />
-          <button
-            type="button"
-            onClick={() => document.getElementById('imageUploadInput').click()}
-            style={{ ...aiChatStyles.attachButton, ...(isMobile ? aiChatStyles.attachButtonMobile : {}) }}
-            aria-label="Upload image"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-          </button>
           <input
             type="file"
             id="imageUploadInput"
@@ -770,80 +877,347 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
           {selectedImage && (
             <div style={aiChatStyles.imagePreviewContainer}>
               <img src={URL.createObjectURL(selectedImage)} alt="Preview" style={aiChatStyles.imagePreview} />
-              <button onClick={() => setSelectedImage(null)} style={aiChatStyles.clearImageButton}>x</button>
+              <button onClick={() => setSelectedImage(null)} style={aiChatStyles.clearImageButton}>&times;</button>
             </div>
           )}
           <button
             onClick={handleSendMessage}
             style={{ ...aiChatStyles.sendButton, ...(isMobile ? aiChatStyles.sendButtonMobile : {}) }}
             aria-label="Send message"
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 22px 42px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.48)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)'; }}
           >
-            Send
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
           </button>
         </div>
       </div>
+
+{showProModal && ReactDOM.createPortal(
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10000,
+          background: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+          animation: "fadeIn 0.3s ease",
+        }}
+        onClick={() => setShowProModal(false)}>
+          <div style={{ 
+            background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,253,244,0.9))", 
+            border: "1px solid rgba(255,255,255,0.8)",
+            borderRadius: "24px", 
+            padding: isMobile ? "20px" : "32px 24px", 
+            maxWidth: "720px", 
+            width: "100%", 
+            maxHeight: "90vh", 
+            overflowY: "auto", 
+            position: "relative", 
+            boxShadow: "0 25px 50px rgba(0,0,0,0.15)", 
+            animation: "scaleUp 0.3s ease-out" 
+          }}
+          onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowProModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}>&times;</button>
+            
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "50%", background: "linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.1))", marginBottom: "12px" }}>
+                <span style={{ fontSize: "20px" }}>✨</span>
+              </div>
+              <h2 style={{ margin: "0 0 6px", fontSize: isMobile ? "18px" : "22px", fontWeight: 800, color: "#000", letterSpacing: "-0.5px" }}>Upgrade to Pro</h2>
+              <p style={{ margin: "0 0 16px", fontSize: "13px", color: "rgba(0,0,0,0.6)", maxWidth: "450px", marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>Unlock advanced AI features, 24/7 Plant Doctor access, priority support, and specialized EcoEquity tools.</p>
+              
+              <div style={{ display: "inline-flex", background: "rgba(0,0,0,0.05)", padding: "4px", borderRadius: "999px" }}>
+                <button onClick={() => setBillingCycle('Monthly')} style={{ padding: "6px 16px", borderRadius: "999px", border: "none", background: billingCycle === 'Monthly' ? "#ffffff" : "transparent", color: billingCycle === 'Monthly' ? "#000" : "rgba(0,0,0,0.6)", fontWeight: 700, fontSize: "12px", cursor: "pointer", boxShadow: billingCycle === 'Monthly' ? "0 4px 12px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}>Monthly</button>
+                <button onClick={() => setBillingCycle('Yearly')} style={{ padding: "6px 16px", borderRadius: "999px", border: "none", background: billingCycle === 'Yearly' ? "#ffffff" : "transparent", color: billingCycle === 'Yearly' ? "#000" : "rgba(0,0,0,0.6)", fontWeight: 700, fontSize: "12px", cursor: "pointer", boxShadow: billingCycle === 'Yearly' ? "0 4px 12px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}>Yearly <span style={{ color: "#16a34a", fontSize: "10px", marginLeft: "4px", background: "rgba(22, 163, 74, 0.1)", padding: "2px 6px", borderRadius: "999px" }}>Save 20%</span></button>
+              </div>
+            </div>
+
+            <div className="slim-scroll" style={{ display: isMobile ? "flex" : "grid", gridTemplateColumns: isMobile ? "none" : "repeat(3, 1fr)", gap: "16px", overflowX: isMobile ? "auto" : "visible", scrollSnapType: isMobile ? "x mandatory" : "none", paddingBottom: isMobile ? "8px" : "0" }}>
+              {/* Basic Plan */}
+              <div onClick={() => setSelectedPlan('Basic')} style={{ flex: isMobile ? "0 0 85%" : "none", scrollSnapAlign: "center", padding: "16px", borderRadius: "16px", border: selectedPlan === 'Basic' ? "1px solid #16a34a" : "1px solid rgba(0,0,0,0.08)", background: selectedPlan === 'Basic' ? "rgba(22, 163, 74, 0.03)" : "#ffffff", display: "flex", flexDirection: "column", position: "relative", cursor: "pointer", transition: "all 0.2s ease", boxShadow: selectedPlan === 'Basic' ? "0 0 0 3px rgba(22, 163, 74, 0.2), 0 12px 24px rgba(0,0,0,0.08)" : "none" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = selectedPlan === 'Basic' ? "0 0 0 3px rgba(22, 163, 74, 0.2), 0 16px 32px rgba(0,0,0,0.12)" : "0 12px 24px rgba(0,0,0,0.08)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = selectedPlan === 'Basic' ? "0 0 0 3px rgba(22, 163, 74, 0.2), 0 12px 24px rgba(0,0,0,0.08)" : "none"; }}>
+                {selectedPlan === 'Basic' && <div style={{ position: "absolute", top: "12px", right: "12px", background: "#16a34a", color: "#ffffff", width: "20px", height: "20px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 800, boxShadow: "0 2px 4px rgba(22, 163, 74, 0.3)", animation: "scaleUp 0.2s ease-out" }}>✓</div>}
+                <h3 style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 700, color: "#000" }}>Basic</h3>
+                <p style={{ margin: "0 0 12px", fontSize: "12px", color: "rgba(0,0,0,0.5)", lineHeight: 1.4 }}>For casual gardeners and beginners.</p>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: "#000", marginBottom: "6px", letterSpacing: "-1px" }}>
+                  {billingCycle === 'Monthly' ? 'Free' : 'Free'}
+                </div>
+                <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.5)", marginBottom: "16px", fontWeight: 500 }}>Forever</div>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#16a34a", fontSize: "12px" }}>✓</span> General AI Chat</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#16a34a", fontSize: "12px" }}>✓</span> Community Access</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", color: "rgba(0,0,0,0.4)", alignItems: "center", fontWeight: 500 }}><span style={{ fontSize: "12px" }}>✗</span> 24/7 Plant Doctor</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", color: "rgba(0,0,0,0.4)", alignItems: "center", fontWeight: 500 }}><span style={{ fontSize: "12px" }}>✗</span> Photo Diagnostics</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", color: "rgba(0,0,0,0.4)", alignItems: "center", fontWeight: 500 }}><span style={{ fontSize: "12px" }}>✗</span> Priority Support</li>
+                </ul>
+                <button disabled style={{ width: "100%", padding: "10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", fontWeight: 700, fontSize: "13px", cursor: "not-allowed", transition: "all 0.2s ease", boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)", opacity: 0.7 }}>Current Plan</button>
+              </div>
+
+              {/* Pro Plan */}
+              <div onClick={() => setSelectedPlan('Pro')} style={{ flex: isMobile ? "0 0 85%" : "none", scrollSnapAlign: "center", padding: "16px", borderRadius: "16px", border: "2px solid #eab308", background: selectedPlan === 'Pro' ? "linear-gradient(145deg, rgba(234,179,8,0.1), rgba(255,255,255,1))" : "linear-gradient(145deg, rgba(234,179,8,0.05), rgba(255,255,255,1))", display: "flex", flexDirection: "column", position: "relative", cursor: "pointer", transition: "all 0.2s ease", boxShadow: selectedPlan === 'Pro' ? "0 0 0 4px rgba(234, 179, 8, 0.3), 0 12px 24px rgba(234, 179, 8, 0.2)" : "0 8px 16px rgba(234, 179, 8, 0.15)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = selectedPlan === 'Pro' ? "0 0 0 4px rgba(234, 179, 8, 0.3), 0 16px 32px rgba(234, 179, 8, 0.3)" : "0 16px 32px rgba(234, 179, 8, 0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = selectedPlan === 'Pro' ? "0 0 0 4px rgba(234, 179, 8, 0.3), 0 12px 24px rgba(234, 179, 8, 0.2)" : "0 8px 16px rgba(234, 179, 8, 0.15)"; }}>
+                <div style={{ position: "absolute", top: "-10px", left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg, #eab308, #ca8a04)", color: "#ffffff", padding: "3px 10px", borderRadius: "999px", fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px", boxShadow: "0 4px 12px rgba(234, 179, 8, 0.3)", animation: "pulseBadge 2s infinite ease-in-out" }}>Most Popular</div>
+                {selectedPlan === 'Pro' && <div style={{ position: "absolute", top: "12px", right: "12px", background: "#ca8a04", color: "#ffffff", width: "20px", height: "20px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 800, boxShadow: "0 2px 4px rgba(202, 138, 4, 0.3)", animation: "scaleUp 0.2s ease-out" }}>✓</div>}
+                <h3 style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 800, color: "#ca8a04" }}>Pro</h3>
+                <p style={{ margin: "0 0 12px", fontSize: "12px", color: "rgba(0,0,0,0.6)", lineHeight: 1.4 }}>For serious growers & urban farmers.</p>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: "#000", marginBottom: "6px", letterSpacing: "-1px" }}>
+                  {billingCycle === 'Monthly' ? '₱499' : '₱4,790'}
+                </div>
+                <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.5)", marginBottom: "16px", fontWeight: 500 }}>
+                  per {billingCycle === 'Monthly' ? 'month' : 'year, billed annually'}
+                </div>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 600 }}><span style={{ color: "#eab308", fontSize: "12px" }}>✓</span> Unlimited AI Chat</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 600 }}><span style={{ color: "#eab308", fontSize: "12px" }}>✓</span> 24/7 AI Plant Doctor</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 600 }}><span style={{ color: "#eab308", fontSize: "12px" }}>✓</span> Advanced Photo Diagnostics</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 600 }}><span style={{ color: "#eab308", fontSize: "12px" }}>✓</span> Priority Support</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", color: "rgba(0,0,0,0.4)", alignItems: "center", fontWeight: 500 }}><span style={{ fontSize: "12px" }}>✗</span> API Access</li>
+                </ul>
+                <button onClick={(e) => { e.stopPropagation(); setShowProModal(false); setShowPaymentModal(true); }} style={{ width: "100%", padding: "10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", fontWeight: 800, fontSize: "13px", cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease", boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.035)'; e.currentTarget.style.boxShadow = '0 22px 42px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.48)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)'; }}>Choose Pro</button>
+              </div>
+
+              {/* Enterprise Plan */}
+              <div onClick={() => setSelectedPlan('Enterprise')} style={{ flex: isMobile ? "0 0 85%" : "none", scrollSnapAlign: "center", padding: "16px", borderRadius: "16px", border: selectedPlan === 'Enterprise' ? "1px solid #0ea5e9" : "1px solid rgba(0,0,0,0.08)", background: selectedPlan === 'Enterprise' ? "rgba(14, 165, 233, 0.03)" : "#ffffff", display: "flex", flexDirection: "column", position: "relative", cursor: "pointer", transition: "all 0.2s ease", boxShadow: selectedPlan === 'Enterprise' ? "0 0 0 3px rgba(14, 165, 233, 0.2), 0 12px 24px rgba(0,0,0,0.08)" : "none" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = selectedPlan === 'Enterprise' ? "0 0 0 3px rgba(14, 165, 233, 0.2), 0 16px 32px rgba(0,0,0,0.12)" : "0 12px 24px rgba(0,0,0,0.08)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = selectedPlan === 'Enterprise' ? "0 0 0 3px rgba(14, 165, 233, 0.2), 0 12px 24px rgba(0,0,0,0.08)" : "none"; }}>
+                {selectedPlan === 'Enterprise' && <div style={{ position: "absolute", top: "12px", right: "12px", background: "#0ea5e9", color: "#ffffff", width: "20px", height: "20px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 800, boxShadow: "0 2px 4px rgba(14, 165, 233, 0.3)", animation: "scaleUp 0.2s ease-out" }}>✓</div>}
+                <h3 style={{ margin: "0 0 6px", fontSize: "16px", fontWeight: 800, color: "#0284c7" }}>Enterprise</h3>
+                <p style={{ margin: "0 0 12px", fontSize: "12px", color: "rgba(0,0,0,0.5)", lineHeight: 1.4 }}>For commercial farms & businesses.</p>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: "#000", marginBottom: "6px", letterSpacing: "-1px" }}>
+                  {billingCycle === 'Monthly' ? '₱1,499' : '₱14,390'}
+                </div>
+                <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.5)", marginBottom: "16px", fontWeight: 500 }}>
+                  per {billingCycle === 'Monthly' ? 'month' : 'year, billed annually'}
+                </div>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", flexGrow: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#0ea5e9", fontSize: "12px" }}>✓</span> Everything in Pro</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#0ea5e9", fontSize: "12px" }}>✓</span> Dedicated Human Agent</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#0ea5e9", fontSize: "12px" }}>✓</span> 24/7 VIP Phone Support</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#0ea5e9", fontSize: "12px" }}>✓</span> Custom API Access</li>
+                  <li style={{ display: "flex", gap: "8px", fontSize: "12px", alignItems: "center", color: "#000", fontWeight: 500 }}><span style={{ color: "#0ea5e9", fontSize: "12px" }}>✓</span> Team Analytics Dashboard</li>
+                </ul>
+<button onClick={(e) => { e.stopPropagation(); setShowProModal(false); setShowPaymentModal(true); }} style={{ width: "100%", padding: "10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, #38bdf8, #0284c7)", color: "#ffffff", fontWeight: 800, fontSize: "13px", cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease", boxShadow: "0 18px 38px rgba(14,165,233,0.26), inset 0 1px 0 rgba(255,255,255,0.48)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.035)'; e.currentTarget.style.boxShadow = '0 22px 42px rgba(14,165,233,0.35), inset 0 1px 0 rgba(255,255,255,0.48)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 18px 38px rgba(14,165,233,0.26), inset 0 1px 0 rgba(255,255,255,0.48)'; }}>Choose Enterprise</button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showPaymentModal && ReactDOM.createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", animation: "fadeIn 0.3s ease" }}>
+          <div style={{ background: "#ffffff", borderRadius: "24px", padding: isMobile ? "24px" : "40px", maxWidth: "800px", width: "100%", maxHeight: "90vh", overflowY: "auto", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", animation: "scaleUp 0.3s ease-out" }}>
+            <button onClick={() => setShowPaymentModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "50%", width: "32px", height: "32px", cursor: "pointer", fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}>&times;</button>
+            
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr", gap: "32px" }}>
+              {/* Left Column: Order Summary */}
+              <div style={{ display: "flex", flexDirection: "column", order: isMobile ? 1 : 1 }}>
+                <h3 style={{ margin: "0 0 16px", fontSize: "18px", fontWeight: 800, color: "#000" }}>Order Summary</h3>
+                <div style={{ background: "#f8fafc", borderRadius: "16px", padding: "24px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
+                    <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "linear-gradient(135deg, #16a34a, #15803d)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "24px", boxShadow: "0 4px 12px rgba(22,163,74,0.3)" }}>✨</div>
+                    <div>
+                      <div style={{ fontSize: "16px", fontWeight: 800, color: "#0f172a" }}>{selectedPlan} Plan</div>
+                      <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>{billingCycle} Billing</div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px", color: "#475569" }}>
+                    <span>Subtotal</span>
+                    <span style={{ fontWeight: 600, color: "#0f172a" }}>{selectedPlan === 'Enterprise' ? (billingCycle === 'Monthly' ? '₱1,499.00' : '₱17,988.00') : (billingCycle === 'Monthly' ? '₱499.00' : '₱5,988.00')}</span>
+                  </div>
+                  {billingCycle === 'Yearly' && (
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px", fontSize: "14px", color: "#16a34a" }}>
+                      <span>Annual Discount (20%)</span>
+                      <span style={{ fontWeight: 600 }}>-{selectedPlan === 'Enterprise' ? '₱3,598.00' : '₱1,198.00'}</span>
+                    </div>
+                  )}
+                  <div style={{ height: "1px", background: "#e2e8f0", margin: "20px 0" }}></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "#000" }}>Total Due</span>
+                    <span style={{ fontSize: "24px", fontWeight: 800, color: "#15803d" }}>{selectedPlan === 'Enterprise' ? (billingCycle === 'Monthly' ? '₱1,499.00' : '₱14,390.00') : (billingCycle === 'Monthly' ? '₱499.00' : '₱4,790.00')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Payment Details */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", order: isMobile ? 2 : 2 }}>
+                <h3 style={{ margin: "0 0 4px", fontSize: "18px", fontWeight: 800, color: "#000" }}>Payment Method</h3>
+                
+                <div style={{ display: "flex", gap: "8px", background: "#f1f5f9", padding: "4px", borderRadius: "12px" }}>
+                  {['Credit Card', 'GCash', 'Maya'].map(method => (
+                    <button 
+                      key={method} 
+                      type="button" 
+                      onClick={() => setPaymentMethod(method)}
+                      style={{ flex: 1, padding: "10px 8px", borderRadius: "8px", border: "none", background: paymentMethod === method ? "#ffffff" : "transparent", color: paymentMethod === method ? "#15803d" : "#64748b", fontSize: "13px", fontWeight: 700, cursor: "pointer", transition: "all 0.2s", boxShadow: paymentMethod === method ? "0 2px 8px rgba(0,0,0,0.05)" : "none" }}>
+                      {method}
+                    </button>
+                  ))}
+                </div>
+
+                {paymentMethod === 'Credit Card' ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Cardholder Name</label>
+                      <input type="text" placeholder="Juan Dela Cruz" value={paymentForm.name} onChange={e => setPaymentForm({...paymentForm, name: e.target.value})} style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = "#16a34a"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Card Number</label>
+                      <div style={{ position: "relative" }}>
+                        <input type="text" placeholder="0000 0000 0000 0000" maxLength="19" value={paymentForm.cardNumber} onChange={e => setPaymentForm({...paymentForm, cardNumber: e.target.value.replace(/\W/gi, '').replace(/(.{4})/g, '$1 ').trim()})} style={{ width: "100%", padding: "14px 16px", paddingRight: "40px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = "#16a34a"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                        <svg style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Expiry Date</label>
+                        <input type="text" placeholder="MM/YY" maxLength="5" value={paymentForm.expiry} onChange={e => setPaymentForm({...paymentForm, expiry: e.target.value.replace(/\W/gi, '').replace(/(.{2})/, '$1/').trim()})} style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = "#16a34a"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>CVC</label>
+                        <input type="text" placeholder="123" maxLength="4" value={paymentForm.cvc} onChange={e => setPaymentForm({...paymentForm, cvc: e.target.value.replace(/\W/gi, '')})} style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = "#16a34a"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ padding: "16px", background: paymentMethod === 'GCash' ? "#eff6ff" : "#ecfdf5", borderRadius: "12px", border: paymentMethod === 'GCash' ? "1px solid #bfdbfe" : "1px solid #a7f3d0", display: "flex", alignItems: "center", gap: "16px", marginBottom: "4px" }}>
+                      <div style={{ fontSize: "28px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" }}>📱</div>
+                      <div>
+                        <div style={{ fontSize: "14px", fontWeight: 800, color: paymentMethod === 'GCash' ? "#1d4ed8" : "#047857" }}>Pay with {paymentMethod}</div>
+                        <div style={{ fontSize: "12px", color: paymentMethod === 'GCash' ? "#3b82f6" : "#059669", fontWeight: 500, marginTop: "2px" }}>Enter your {paymentMethod} account details below.</div>
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Mobile Number</label>
+                      <input type="text" placeholder="e.g. 0912 345 6789" maxLength="13" value={mobilePaymentForm.mobileNumber} onChange={e => setMobilePaymentForm({...mobilePaymentForm, mobileNumber: e.target.value.replace(/\W/gi, '').replace(/(.{4})/, '$1 ').replace(/(.{8})/, '$1 ').trim()})} style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = paymentMethod === 'GCash' ? "#3b82f6" : "#10b981"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Account Name</label>
+                      <input type="text" placeholder="Juan Dela Cruz" value={mobilePaymentForm.accountName} onChange={e => setMobilePaymentForm({...mobilePaymentForm, accountName: e.target.value})} style={{ width: "100%", padding: "14px 16px", borderRadius: "12px", border: "1px solid #e2e8f0", background: "#ffffff", fontSize: "14px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }} onFocus={e => e.target.style.borderColor = paymentMethod === 'GCash' ? "#3b82f6" : "#10b981"} onBlur={e => e.target.style.borderColor = "#e2e8f0"} />
+                    </div>
+                  </div>
+                )}
+                
+                <button 
+                  onClick={() => {
+                    setIsProcessing(true);
+                    setTimeout(() => {
+                      setIsProcessing(false);
+                      setShowPaymentModal(false);
+                      setShowPaymentSuccess(true);
+                      setPaymentForm({ name: '', cardNumber: '', expiry: '', cvc: '' });
+                      setMobilePaymentForm({ mobileNumber: '', accountName: '' });
+                    }, 1500);
+                  }}
+                  disabled={isPayButtonDisabled}
+                  style={{ width: "100%", padding: "16px", marginTop: "12px", borderRadius: "12px", border: isPayButtonDisabled ? "none" : "1px solid rgba(255,255,255,0.35)", background: isPayButtonDisabled ? "#94a3b8" : "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: isPayButtonDisabled ? "#ffffff" : "#062018", fontWeight: 800, fontSize: "15px", cursor: isPayButtonDisabled ? "not-allowed" : "pointer", boxShadow: isPayButtonDisabled ? "none" : "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)", transition: "all 0.2s ease", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                  onMouseEnter={(e) => { if(!isPayButtonDisabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 22px 42px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.48)'; } }}
+                  onMouseLeave={(e) => { if(!isPayButtonDisabled) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)'; } }}
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="ring-spinner"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      Pay {selectedPlan === 'Enterprise' ? (billingCycle === 'Monthly' ? '₱1,499' : '₱14,390') : (billingCycle === 'Monthly' ? '₱499' : '₱4,790')}
+                    </>
+                  )}
+                </button>
+                <div style={{ textAlign: "center", fontSize: "11px", color: "#64748b", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  Payments are secure and encrypted
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showPaymentSuccess && ReactDOM.createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", animation: "fadeIn 0.3s ease" }}>
+          <div style={{ background: "#ffffff", borderRadius: "24px", padding: isMobile ? "32px 24px" : "40px", maxWidth: "380px", width: "100%", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.15)", animation: "scaleUp 0.3s ease-out", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: selectedPlan === 'Enterprise' ? "linear-gradient(135deg, #0ea5e9, #0284c7)" : "linear-gradient(135deg, #eab308, #ca8a04)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", boxShadow: selectedPlan === 'Enterprise' ? "0 8px 16px rgba(14, 165, 233, 0.3)" : "0 8px 16px rgba(234, 179, 8, 0.3)", animation: "checkmarkPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards" }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "successDraw 0.6s ease-out 0.2s both" }}>
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "24px", fontWeight: 800, color: "#000", letterSpacing: "-0.5px" }}>Payment Successful!</h2>
+            <p style={{ margin: "0 0 32px", fontSize: "14px", color: "rgba(0,0,0,0.6)", lineHeight: 1.5 }}>You are now successfully subscribed to the <strong style={{ color: selectedPlan === 'Enterprise' ? "#0284c7" : "#ca8a04" }}>{selectedPlan}</strong> plan.</p>
+            <button 
+              onClick={() => {
+                setActivePlan(selectedPlan);
+                setShowPaymentSuccess(false);
+              }}
+              style={{ width: "100%", padding: "14px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", fontWeight: 700, fontSize: "14px", cursor: "pointer", transition: "transform 0.2s ease, box-shadow 0.2s ease", boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.035)'; e.currentTarget.style.boxShadow = '0 22px 42px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.48)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)'; }}
+            >
+              Start Using {selectedPlan}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
 
 const aiChatStyles = {
   overlay: {
-    position: "absolute", // Changed from fixed to absolute, relative to the parent (shell)
+    position: "fixed",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    background:
-      "linear-gradient(135deg, rgba(27, 103, 77, 0.28), rgba(2, 20, 16, 0.90))",
-    backdropFilter: "blur(45px) saturate(150%)",
-    WebkitBackdropFilter: "blur(45px) saturate(150%)",
+    background: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(4px)",
     display: "flex",
-    justifyContent: "flex-end", // Align content to the right
-    alignItems: "flex-end",     // Align content to the bottom
-    zIndex: 1000,
-    padding: "24px", // Adjusted padding slightly for a better float
-    boxSizing: "border-box", // Ensure padding is included in the total size
+    justifyContent: "center", 
+    alignItems: "center",
+    zIndex: 9999,
+    transition: "opacity 0.3s ease-out",
+    boxSizing: "border-box",
   },
   chatContainer: {
-    background:
-      "linear-gradient(145deg, rgba(255,255,255,0.24), rgba(255,255,255,0.10))",
-    backdropFilter: "blur(32px) saturate(180%)",
-    WebkitBackdropFilter: "blur(32px) saturate(180%)",
-    borderRadius: "24px",
-    border: "1px solid rgba(255, 255, 255, 0.26)",
-    boxShadow:
-      "0 28px 70px rgba(0, 0, 0, 0.38), " +
-      "inset 0 1px 0 rgba(255,255,255,0.32)",
-    width: "390px",
-    height: "540px",
+    background: "#ffffff",
+    borderRadius: "0px",
+    border: "none",
+    boxShadow: "none",
+    width: "100%",
+    maxWidth: "100%",
+    height: "100%",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    color: "#fff",
+    color: "#000",
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
     transition: "opacity 0.3s ease-out, transform 0.3s ease-out", // Animation transition
   },
   chatContainerMobile: {
-    width: "92%", // Take up more width on mobile
-    height: "76%", // Take up more height on mobile
-    position: "absolute", // Override flex positioning for centering
-    top: "50%",
-    left: "50%",
-    right: "auto", // Reset right alignment
-    bottom: "auto", // Reset bottom alignment
-    maxWidth: "none", // Allow full width
-    maxHeight: "none", // Allow full height
+    width: "100%",
+    height: "100%",
+    maxWidth: "100%",
+    maxHeight: "100%",
+    borderRadius: "0",
   },
   toggleBotButton: {
-    background: "rgba(255, 255, 255, 0.13)",
-    border: "1px solid rgba(255, 255, 255, 0.24)",
-    color: "#fff",
+    background: "rgba(21, 128, 61, 0.1)",
+    border: "1px solid rgba(21, 128, 61, 0.2)",
+    color: "#15803d",
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
     padding: "8px 12px",
     borderRadius: "999px",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
     transition: "background 0.16s ease, transform 0.16s ease",
   },
   toggleBotButtonMobile: { // New mobile style
@@ -851,20 +1225,18 @@ const aiChatStyles = {
     padding: "7px 10px",
   },
   chatHeader: {
-    padding: "16px 18px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.16)",
+    padding: "20px 24px",
+    borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: "12px",
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
+    background: "#ffffff",
   },
-  headerText: {
+headerText: {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    gap: "6px",
+    gap: "4px",
     minWidth: 0,
   },
   headerActions: {
@@ -872,6 +1244,26 @@ const aiChatStyles = {
     alignItems: "center",
     gap: "8px",
     flexShrink: 0,
+  },
+  upgradeProBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    borderRadius: "999px",
+    background: "linear-gradient(135deg, #eab308, #ca8a04)",
+    color: "#ffffff",
+    fontSize: "12px",
+    fontWeight: 800,
+    border: "none",
+    cursor: "pointer",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    boxShadow: "0 2px 8px rgba(234, 179, 8, 0.2)",
+    whiteSpace: "nowrap",
+  },
+  upgradeProBtnMobile: {
+    padding: "6px 10px",
+    fontSize: "11px",
   },
   switcherStack: {
     display: "flex",
@@ -886,31 +1278,30 @@ const aiChatStyles = {
     gap: "7px",
     padding: "5px 8px",
     borderRadius: "999px",
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.08)",
-    color: "rgba(255,255,255,0.78)",
+    border: "1px solid rgba(0,0,0,0.1)",
+    background: "#f9fafb",
+    color: "#374151",
     fontSize: "10px",
     fontWeight: 800,
     letterSpacing: "0.2px",
     cursor: "pointer",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
   },
   agentSwitchActive: {
-    background: "rgba(134,239,172,0.16)",
-    border: "1px solid rgba(134,239,172,0.34)",
-    color: "#ffffff",
+    background: "rgba(220, 38, 38, 0.1)",
+    border: "1px solid rgba(220, 38, 38, 0.3)",
+    color: "#dc2626",
   },
   agentSwitchTrack: {
     width: "24px",
     height: "14px",
     borderRadius: "999px",
-    background: "rgba(255,255,255,0.18)",
+    background: "rgba(0,0,0,0.2)",
     position: "relative",
     flexShrink: 0,
     transition: "background 0.16s ease",
   },
   agentSwitchTrackActive: {
-    background: "linear-gradient(135deg, #86efac, #7dd3fc)",
+    background: "linear-gradient(135deg, #ef4444, #dc2626)",
   },
   agentSwitchThumb: {
     position: "absolute",
@@ -930,7 +1321,7 @@ const aiChatStyles = {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
-    color: "rgba(255,255,255,0.72)",
+    color: "#059669",
     fontSize: "10px",
     fontWeight: 700,
     letterSpacing: "0.8px",
@@ -953,26 +1344,23 @@ const aiChatStyles = {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    background: "linear-gradient(90deg, #86efac, #7dd3fc)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    color: "#15803d",
   },
   closeButton: {
-    background: "rgba(255,255,255,0.11)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(0,0,0,0.05)",
+    border: "none",
     borderRadius: "50%",
-    color: "#fff",
-    fontSize: "20px",
+    color: "#111827",
+    fontSize: "24px",
     lineHeight: 1,
     cursor: "pointer",
-    width: "34px",
-    height: "34px",
+    width: "36px",
+    height: "36px",
     padding: 0,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
+    transition: "background 0.2s",
   },
   closeButtonMobile: { // New mobile style
     fontSize: "18px",
@@ -981,131 +1369,141 @@ const aiChatStyles = {
   },
   messagesContainer: {
     flexGrow: 1,
-    padding: "18px",
+    padding: "24px",
     overflowY: "auto",
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
-    background:
-      "radial-gradient(circle at 18% 10%, rgba(134,239,172,0.12), transparent 28%), " +
-      "radial-gradient(circle at 88% 22%, rgba(125,211,252,0.10), transparent 30%)",
+    gap: "16px",
+    background: "#f9fafb",
   },
   welcomeMessage: {
     textAlign: "center",
-    color: "rgba(255, 255, 255, 0.78)",
-    fontSize: "14px",
+    color: "#374151",
+    fontSize: "16px",
+    fontWeight: 500,
     lineHeight: 1.65,
-    margin: "auto 8px",
-    padding: "22px 18px",
-    borderRadius: "18px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.14)",
+    maxWidth: "80%",
+  },
+  quickPromptsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "10px",
+    maxWidth: "500px",
+  },
+  quickPromptBtn: {
+    background: "#ffffff",
+    border: "1px solid rgba(21, 128, 61, 0.2)",
+    borderRadius: "999px",
+    padding: "8px 16px",
+    color: "#15803d",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
   },
   messageBubble: {
     maxWidth: "82%",
-    padding: "11px 14px",
-    borderRadius: "17px",
-    // Add specific border radius for the sender to make it look like a chat bubble
-    borderBottomLeftRadius: "7px",
-    borderBottomRightRadius: "7px",
+    padding: "12px 16px",
+    borderRadius: "18px",
     wordWrap: "break-word",
-    fontSize: "13.5px",
+    fontSize: "14px",
     lineHeight: 1.5,
     whiteSpace: "pre-line",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.15)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
   },
   userMessage: {
     alignSelf: "flex-end",
-    background: "linear-gradient(135deg, rgba(125,211,252,0.95), rgba(134,239,172,0.92))",
+    background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))",
     color: "#062018",
-    borderBottomRightRadius: "5px",
-    borderTopRightRadius: "17px",
-    borderTopLeftRadius: "17px",
+    border: "1px solid rgba(255,255,255,0.35)",
+    borderBottomRightRadius: "4px",
+    boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)",
   },
-  aiMessage: {
+aiMessage: {
     alignSelf: "flex-start",
-    background: "rgba(255,255,255,0.13)",
-    border: "1px solid rgba(255,255,255,0.16)",
-    color: "rgba(255,255,255,0.90)",
+    background: "linear-gradient(135deg, rgba(74,222,128,0.25), rgba(134,239,172,0.15))",
+    border: "1px solid rgba(134,239,172,0.3)",
+    color: "#111827",
     borderBottomLeftRadius: "5px",
-    borderTopLeftRadius: "17px",
-    borderTopRightRadius: "17px",
-    backdropFilter: "blur(14px) saturate(150%)",
-    WebkitBackdropFilter: "blur(14px) saturate(150%)",
+    boxShadow: "0 0 18px rgba(134, 239, 172, 0.25), inset 0 1px 0 rgba(255,255,255,0.5)",
   },
   agentMessage: {
     alignSelf: "flex-start",
-    background: "linear-gradient(135deg, #fef08a, #facc15)",
-    color: "#422006",
-    border: "1px solid rgba(254, 240, 138, 0.4)",
-    borderBottomLeftRadius: "5px",
-    borderTopLeftRadius: "17px",
-    borderTopRightRadius: "17px",
-    boxShadow: "0 10px 25px rgba(234, 179, 8, 0.3)",
+    background: "#fffbeb",
+    color: "#b45309",
+    border: "1px solid rgba(245, 158, 11, 0.3)",
+    borderBottomLeftRadius: "4px",
   },
   messageBubbleMobile: { maxWidth: "90%" },
   inputContainer: {
-    padding: "14px 16px 16px",
-    borderTop: "1px solid rgba(255, 255, 255, 0.16)",
+    padding: "16px 24px",
+    borderTop: "1px solid rgba(0, 0, 0, 0.05)",
     display: "flex",
-    gap: "10px",
-    background: "rgba(255,255,255,0.08)",
+    gap: "12px",
+    background: "#ffffff",
     alignItems: "flex-end",
+    borderBottomLeftRadius: "24px",
+    borderBottomRightRadius: "24px",
   },
   chatInput: {
     flexGrow: 1,
     minWidth: 0,
-    padding: "12px 15px",
-    borderRadius: "18px",
-    border: "1px solid rgba(255, 255, 255, 0.24)",
-    background: "rgba(3, 20, 16, 0.28)",
-    color: "#fff",
+    padding: "14px 16px",
+    borderRadius: "24px",
+    border: "1px solid rgba(0, 0, 0, 0.1)",
+    background: "#f3f4f6",
+    color: "#111827",
     fontSize: "14px",
     outline: "none",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
     resize: "none",
     maxHeight: "150px",
     overflowY: "auto",
     lineHeight: "1.5",
     fontFamily: "inherit",
+    transition: "border-color 0.2s, background 0.2s",
   },
   chatInputMobile: { // New mobile style
     fontSize: "13px",
     padding: "10px 12px",
   },
   sendButton: {
-    padding: "11px 18px",
+    padding: "10px",
+    width: "44px",
+    height: "44px",
     borderRadius: "999px",
-    border: "1px solid rgba(255,255,255,0.34)",
-    background: "linear-gradient(135deg, rgba(134,239,172,0.98), rgba(125,211,252,0.96))",
+    border: "1px solid rgba(255,255,255,0.35)",
+    background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))",
     color: "#062018",
-    fontSize: "13px",
-    fontWeight: 800,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "0 14px 30px rgba(34,197,94,0.24), inset 0 1px 0 rgba(255,255,255,0.48)",
+    boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    flexShrink: 0,
   },
   sendButtonMobile: { // New mobile style
-    fontSize: "12px",
-    padding: "10px 14px",
-    transition: "transform 0.16s ease, box-shadow 0.16s ease",
+    width: "40px",
+    height: "40px",
   },
-  attachButton: {
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.24)",
-    borderRadius: "999px",
-    color: "#fff",
-    fontSize: "18px",
+  iconButton: {
+    background: "transparent",
+    border: "none",
+    color: "#6b7280",
+    fontSize: "20px",
     width: "40px",
     height: "40px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
+    borderRadius: "50%",
     flexShrink: 0,
+    transition: "background 0.2s, color 0.2s",
   },
-  attachButtonMobile: {
-    fontSize: "16px",
+  iconButtonMobile: {
     width: "36px",
     height: "36px",
   },
@@ -1127,19 +1525,20 @@ const aiChatStyles = {
   },
   clearImageButton: {
     position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    background: "rgba(0,0,0,0.6)",
+    top: "-8px",
+    right: "-8px",
+    background: "#ef4444",
     color: "#fff",
     border: "none",
     borderRadius: "50%",
-    width: "20px",
-    height: "20px",
-    fontSize: "12px",
+    width: "24px",
+    height: "24px",
+    fontSize: "14px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
   },
 };
 

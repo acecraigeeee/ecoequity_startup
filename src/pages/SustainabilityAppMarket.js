@@ -112,19 +112,19 @@ function SustainabilityAppMarket() {
 
       <div style={{ ...styles.cardRow, ...(isMobile ? styles.cardRowMobile : {}) }} className="hide-scroll">
         <div style={{ ...styles.sectionCard, ...(isMobile ? styles.sectionCardMobile : {}) }}>
-          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>1. TAM (Total Available Market)</h2>
+          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>1. TAM (Total Available Market) - The Philippine Opportunity</h2>
           <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>The entire market within the Philippines that could potentially use the product, driven by the shift towards self-sufficiency.</p>
           {renderTable(tamData, 0)}
         </div>
 
         <div style={{ ...styles.sectionCard, ...(isMobile ? styles.sectionCardMobile : {}) }}>
-          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>2. SAM (Serviceable Available Market)</h2>
+          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>2. SAM (Serviceable Available Market) - Our Reach in Major Urban Centers</h2>
           <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>The portion of the TAM that our services can realistically reach, constrained by urban density and connectivity.</p>
           {renderTable(samData, 1)}
         </div>
 
         <div style={{ ...styles.sectionCard, ...(isMobile ? styles.sectionCardMobile : {}) }}>
-          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>3. SOM (Serviceable Obtainable Market)</h2>
+          <h2 style={{ ...styles.subtitle, ...(isMobile ? styles.subtitleMobile : {}) }}>3. SOM (Serviceable Obtainable Market) - Our Initial Focus (Year 3 Goals)</h2>
           <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>The realistic market share we can capture in the first 3 years of operation, focusing on highly engaged early adopters.</p>
           {renderTable(somData, 2)}
         </div>
@@ -154,14 +154,15 @@ const styles = {
     gap: "7px",
     padding: "5px 14px",
     borderRadius: "999px",
-    background: "rgba(255,255,255,0.13)",
-    border: "none",
+    background: "rgba(255,255,255,0.6)",
+    border: "1px solid rgba(0,0,0,0.05)",
     fontSize: "11px",
     fontWeight: 600,
-    color: "rgba(255,255,255,0.80)",
+    color: "#15803d",
     letterSpacing: "0.6px",
     textTransform: "uppercase",
     marginBottom: "20px",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 12px rgba(0,0,0,0.05)",
   },
   badgeMobile: {
     marginBottom: "12px",
@@ -178,11 +179,11 @@ const styles = {
   title: {
     fontSize: "clamp(32px, 4.5vw, 50px)",
     fontWeight: 700,
-    color: "#fff",
+    color: "#000",
     margin: "0 0 16px",
     lineHeight: 1.15,
     letterSpacing: "-0.8px",
-    textShadow: "0 2px 20px rgba(0,0,0,0.35)",
+    textShadow: "0 4px 12px rgba(0,0,0,0.1)",
     animation: "titleReveal 0.9s cubic-bezier(.22,1,.36,1) 0.15s both",
   },
   titleMobile: {
@@ -207,7 +208,7 @@ const styles = {
   subtitle: {
     fontSize: "clamp(18px, 2.2vw, 24px)",
     fontWeight: 600,
-    color: "#ffffff",
+    color: "#000",
     margin: "24px 0 16px",
     lineHeight: 1.25,
     letterSpacing: "-0.3px",
@@ -217,7 +218,7 @@ const styles = {
     margin: "0 0 8px",
   },
   body: {
-    color: "rgb(255, 255, 255)",
+    color: "#000",
     fontSize: "clamp(14px, 1.5vw, 16px)",
     fontWeight: 400,
     lineHeight: 1.72,
@@ -258,12 +259,12 @@ const styles = {
   tableWrapper: {
     width: "100%",
     marginTop: "24px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.6)",
+    border: "1px solid rgba(0,0,0,0.05)",
     borderRadius: "20px",
     padding: "16px",
     boxSizing: "border-box",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 24px rgba(0,0,0,0.15)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px rgba(0,0,0,0.05)",
     backdropFilter: "blur(20px) saturate(180%)",
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
     overflowX: "auto",
@@ -285,8 +286,8 @@ const styles = {
   },
   th: {
     padding: "14px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.2)",
-    color: "#4ade80",
+    borderBottom: "1px solid rgba(0,0,0,0.1)",
+    color: "#15803d",
     fontSize: "14px",
     fontWeight: 700,
     overflowWrap: "break-word",
@@ -297,8 +298,8 @@ const styles = {
   },
   td: {
     padding: "14px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    color: "rgba(255,255,255,0.85)",
+    borderBottom: "1px solid rgba(0,0,0,0.05)",
+    color: "rgba(0,0,0,0.8)",
     fontSize: "14px",
     lineHeight: 1.6,
     overflowWrap: "break-word",
