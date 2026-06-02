@@ -62,7 +62,7 @@ function IncomeGenerationPage({ setActiveNav }) {
               ...styles.backBtn,
               ...(isHoveredBack ? styles.backBtnHov : {}),
             }}
-            onClick={() => setActiveNav && setActiveNav("OurImpactPage")}
+            onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "OurImpactPage")}
             onMouseEnter={() => setIsHoveredBack(true)}
             onMouseLeave={() => setIsHoveredBack(false)}
           > 

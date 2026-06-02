@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
-import { FaArrowLeft, FaMapMarkerAlt, FaWeightHanging, FaDollarSign, FaPlusCircle, FaHandshake, FaTimes, FaChevronDown, FaCheckCircle, FaCalendarAlt, FaChartLine, FaFilter } from "react-icons/fa";
+import { FaArrowLeft, FaMapMarkerAlt, FaWeightHanging, FaDollarSign, FaPlusCircle, FaHandshake, FaTimes, FaChevronDown, FaCheckCircle, FaCalendarAlt, FaChartLine, FaFilter, FaPaperPlane, FaMicrophone, FaImage } from "react-icons/fa";
 
 const mockSurplusListings = [
   { id: 1, product: "Organic Tomatoes", quantity: 500, unit: "kg", price: 120, location: "Benguet", farmer: "Green Harvest Farms", status: "Available", description: "Freshly harvested organic tomatoes for bulk delivery." },
@@ -9,9 +9,9 @@ const mockSurplusListings = [
 ];
 
 const mockRestaurantDemand = [
-  { id: 101, restaurant: "Green Leaf Bistro", verified: true, product: "Organic Romaine Lettuce", quantity: 50, unit: "kg", targetPrice: 150, location: "Makati City", neededDate: "2026-06-05", logo: "🥗", matchScore: 98, urgent: true, status: "Open", contactNumber: "0912 345 6789" },
-  { id: 102, restaurant: "Farm to Table Resto", verified: true, product: "Cherry Tomatoes", quantity: 30, unit: "kg", targetPrice: 120, location: "BGC, Taguig", neededDate: "2026-06-03", logo: "🍲", matchScore: 85, urgent: false, status: "Open", contactNumber: "0987 654 3210" },
-  { id: 103, restaurant: "Vegan Eats", verified: true, product: "Sweet Basil", quantity: 5, unit: "kg", targetPrice: 400, location: "Quezon City", neededDate: "2026-06-02", logo: "🌱", matchScore: 72, urgent: true, status: "Open", contactNumber: "0999 111 2222" },
+  { id: 101, restaurant: "Green Leaf Bistro", verified: true, product: "Organic Romaine Lettuce", quantity: 50, unit: "kg", targetPrice: 150, location: "Makati City", neededDate: "2026-06-05", logo: "🥗", matchScore: 98, urgent: true, status: "Open" },
+  { id: 102, restaurant: "Farm to Table Resto", verified: true, product: "Cherry Tomatoes", quantity: 30, unit: "kg", targetPrice: 120, location: "BGC, Taguig", neededDate: "2026-06-03", logo: "🍲", matchScore: 85, urgent: false, status: "Open" },
+  { id: 103, restaurant: "Vegan Eats", verified: true, product: "Sweet Basil", quantity: 5, unit: "kg", targetPrice: 400, location: "Quezon City", neededDate: "2026-06-02", logo: "🌱", matchScore: 72, urgent: true, status: "Open" },
 ];
 
 function SurplusExchangePage({ setActiveNav }) {
@@ -26,7 +26,7 @@ function SurplusExchangePage({ setActiveNav }) {
   const [showListSurplusModal, setShowListSurplusModal] = useState(false);
   const [showPostDemandModal, setShowPostDemandModal] = useState(false);
   const [negotiationHistory, setNegotiationHistory] = useState([]);
-  const [offerPrice, setOfferPrice] = useState("");
+  const [negotiationMessage, setNegotiationMessage] = useState("");
   const [sellerStatus, setSellerStatus] = useState("pending"); // 'pending', 'accepted', 'countered'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -35,12 +35,13 @@ function SurplusExchangePage({ setActiveNav }) {
   const [showOngoingOnly, setShowOngoingOnly] = useState(false);
   const [filter, setFilter] = useState('active'); // 'active' or 'archived'
   const chatEndRef = useRef(null);
+  const negotiationInputRef = useRef(null);
 
   const [sortConfig, setSortConfig] = useState({ key: 'product', direction: 'ascending' });
   const [newSurplus, setNewSurplus] = useState({ product: "", quantity: "", unit: "kg", price: "", location: "", description: "" });
   const [isSubmittingSurplus, setIsSubmittingSurplus] = useState(false);
 
-  const [newDemand, setNewDemand] = useState({ product: "", quantity: "", unit: "kg", targetPrice: "", location: "", neededDate: "", restaurant: "My Restaurant", contactNumber: "" });
+  const [newDemand, setNewDemand] = useState({ product: "", quantity: "", unit: "kg", targetPrice: "", location: "", neededDate: "", restaurant: "My Restaurant" });
   const [isSubmittingDemand, setIsSubmittingDemand] = useState(false);
 
   const [showRestaurantOfferModal, setShowRestaurantOfferModal] = useState(false);
@@ -82,7 +83,7 @@ function SurplusExchangePage({ setActiveNav }) {
 
     setSelectedItem(item);
     setModalType('negotiate');
-    setOfferPrice('');
+    setNegotiationMessage('');
     setShowConfirmation(false);
     setAcceptedPrice(null);
 
@@ -109,7 +110,7 @@ function SurplusExchangePage({ setActiveNav }) {
 
     setSelectedItem({ ...item, buyer: item.restaurant }); 
     setModalType('restaurantOffer');
-    setOfferPrice('');
+    setNegotiationMessage('');
     setShowConfirmation(false);
     setAcceptedPrice(null);
 
@@ -130,18 +131,77 @@ function SurplusExchangePage({ setActiveNav }) {
     }
   };
 
+  const extractOfferPrice = (message) => {
+    const currencyMatch = message.match(/(?:₱|PHP\s*)\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)/i);
+    if (currencyMatch) return parseFloat(currencyMatch[1].replace(/,/g, ""));
+
+    const unitMatch = message.match(/\b(\d+(?:,\d{3})*(?:\.\d{1,2})?)\s*(?:\/|per\s+)(?:kg|ton|pcs|crates|unit)\b/i);
+    return unitMatch ? parseFloat(unitMatch[1].replace(/,/g, "")) : null;
+  };
+
+  const getQuickPrices = () => {
+    if (!selectedItem) return [];
+
+    const basePrice = modalType === 'negotiate' ? selectedItem.price : selectedItem.targetPrice;
+    const multipliers = modalType === 'negotiate' ? [0.95, 0.9, 0.85] : [1, 1.05, 1.1];
+
+    return multipliers.map(multiplier => (basePrice * multiplier).toFixed(2));
+  };
+
+  const getQuickMessages = () => {
+    if (!selectedItem) return [];
+
+    if (modalType === 'negotiate') {
+      return [
+        `Hi, is ${selectedItem.product} still available for delivery this week?`,
+        `Can you confirm the quality and harvest date for ${selectedItem.product}?`,
+        `I can proceed today if we can agree on the final price.`
+      ];
+    }
+
+    return [
+      `Hi, we can supply ${selectedItem.quantity}${selectedItem.unit} of ${selectedItem.product}.`,
+      `We can deliver on your needed date if the price is confirmed today.`,
+      `Can you confirm receiving requirements and delivery window?`
+    ];
+  };
+
+  const buildQuickPriceMessage = (price) => {
+    if (!selectedItem) return "";
+
+    if (modalType === 'negotiate') {
+      return `Hi, I'd like to offer ₱${price} per ${selectedItem.unit} for ${selectedItem.product}.`;
+    }
+
+    return `Hi, we can supply ${selectedItem.product} for ₱${price} per ${selectedItem.unit}.`;
+  };
+
+  const setNegotiationDraft = (message) => {
+    setNegotiationMessage(message);
+    setTimeout(() => {
+      if (negotiationInputRef.current) {
+        negotiationInputRef.current.style.height = "auto";
+        negotiationInputRef.current.style.height = `${Math.min(negotiationInputRef.current.scrollHeight, 92)}px`;
+        negotiationInputRef.current.focus();
+      }
+    }, 0);
+  };
+
   const handleSendOffer = () => {
-    if (!offerPrice || isSubmitting) return;
+    const message = negotiationMessage.trim();
+    const offer = extractOfferPrice(message);
+    if (!message || isSubmitting) return;
 
     setIsSubmitting(true);
     const negotiationId = `negotiate-${selectedItem.id}`;
     const newHistory = [
       ...negotiationHistory,
-      { sender: "user", text: `I'd like to offer ₱${offerPrice} per ${selectedItem.unit}.` }
+      { sender: "user", text: message }
     ];
     setNegotiationHistory(newHistory);
     setNegotiations(prev => ({ ...prev, [negotiationId]: { ...prev[negotiationId], history: newHistory } }));
-    setOfferPrice("");
+    setNegotiationMessage("");
+    if (negotiationInputRef.current) negotiationInputRef.current.style.height = "auto";
 
     // Simulate seller response
     setTimeout(() => {
@@ -157,15 +217,17 @@ function SurplusExchangePage({ setActiveNav }) {
       // Simulate further seller action
       setTimeout(() => {
         const originalPrice = selectedItem.price;
-        const offer = parseFloat(offerPrice);
         let responseText = "";
         let newStatus = sellerStatus;
         let finalAcceptedPrice = acceptedPrice;
 
-        if (offer >= originalPrice * 0.9) {
-          responseText = `We accept your offer of ₱${offerPrice}! Please proceed to confirm.`;
+        if (!offer) {
+          responseText = `Thanks for the message. Please include your preferred price per ${selectedItem.unit} so we can evaluate the offer.`;
+          newStatus = "pending";
+        } else if (offer >= originalPrice * 0.9) {
+          responseText = `We accept your offer of ₱${offer.toFixed(2)}! Please proceed to confirm.`;
           newStatus = "accepted";
-          finalAcceptedPrice = offerPrice;
+          finalAcceptedPrice = offer.toFixed(2);
         } else {
           const counter = (originalPrice * 0.95).toFixed(2);
           responseText = `Your offer is a bit low. Can you do ₱${counter}?`;
@@ -185,17 +247,20 @@ function SurplusExchangePage({ setActiveNav }) {
   };
 
   const handleMakeOffer = () => {
-    if (!offerPrice || isSubmitting) return;
+    const message = negotiationMessage.trim();
+    const offer = extractOfferPrice(message);
+    if (!message || isSubmitting) return;
 
     setIsSubmitting(true);
     const isRestaurant = modalType === 'restaurantOffer';
     const negotiationId = isRestaurant ? `restaurant-${selectedItem.id}` : `offer-${selectedItem.id}`;
     const newHistory = [
       ...negotiationHistory,
-      { sender: "user", text: `We can supply this for ₱${offerPrice} per ${selectedItem.unit}.` }
+      { sender: "user", text: message }
     ];
     setNegotiationHistory(newHistory);
-    setOfferPrice("");
+    setNegotiationMessage("");
+    if (negotiationInputRef.current) negotiationInputRef.current.style.height = "auto";
 
     setNegotiations(prev => ({ ...prev, [negotiationId]: { ...prev[negotiationId], history: newHistory } }));
 
@@ -213,15 +278,17 @@ function SurplusExchangePage({ setActiveNav }) {
       // Simulate further buyer action
       setTimeout(() => {
         const targetPrice = selectedItem.targetPrice;
-        const offer = parseFloat(offerPrice);
         let responseText = "";
         let newStatus = sellerStatus;
         let finalAcceptedPrice = acceptedPrice;
 
-        if (offer <= targetPrice * 1.1) {
-          responseText = `We accept your offer of ₱${offerPrice}! Please proceed to confirm the supply agreement.`;
+        if (!offer) {
+          responseText = `Thanks for the message. Please include your supply price per ${selectedItem.unit} so we can evaluate the offer.`;
+          newStatus = "pending";
+        } else if (offer <= targetPrice * 1.1) {
+          responseText = `We accept your offer of ₱${offer.toFixed(2)}! Please proceed to confirm the supply agreement.`;
           newStatus = "accepted";
-          finalAcceptedPrice = offerPrice;
+          finalAcceptedPrice = offer.toFixed(2);
         } else {
           const counter = (targetPrice * 1.05).toFixed(2);
           responseText = `Your offer is a bit high for our budget. Can you do ₱${counter}?`;
@@ -238,6 +305,25 @@ function SurplusExchangePage({ setActiveNav }) {
       }, 2500);
 
     }, 1500);
+  };
+
+  const handleNegotiationKeyDown = (e) => {
+    if (e.key !== 'Enter') return;
+
+    e.preventDefault();
+    if (modalType === 'negotiate') {
+      handleSendOffer();
+    } else {
+      handleMakeOffer();
+    }
+  };
+
+  const handleNegotiationMessageChange = (e) => {
+    setNegotiationMessage(e.target.value);
+    if (negotiationInputRef.current) {
+      negotiationInputRef.current.style.height = "auto";
+      negotiationInputRef.current.style.height = `${Math.min(negotiationInputRef.current.scrollHeight, 92)}px`;
+    }
   };
 
   const handleAcceptOffer = () => {
@@ -379,7 +465,7 @@ function SurplusExchangePage({ setActiveNav }) {
       setRestaurantDemands(prev => [newItem, ...prev]);
       setIsSubmittingDemand(false);
       setShowPostDemandModal(false);
-      setNewDemand({ product: "", quantity: "", unit: "kg", targetPrice: "", location: "", neededDate: "", restaurant: "My Restaurant", contactNumber: "" });
+      setNewDemand({ product: "", quantity: "", unit: "kg", targetPrice: "", location: "", neededDate: "", restaurant: "My Restaurant" });
     }, 1500);
   };
 
@@ -402,7 +488,7 @@ function SurplusExchangePage({ setActiveNav }) {
     <div style={styles.wrap}>
       <div style={styles.headerRow}>
         <div style={styles.backBtnWrap}>
-          <button style={styles.backBtn} onClick={() => setActiveNav("ServicesPage")}><FaArrowLeft /></button>
+          <button style={styles.backBtn} onClick={() => setActiveNav(isMobile ? "Home" : "ServicesPage")}><FaArrowLeft /></button>
         </div>
         <div className="inner-blur-glass" style={styles.badge}><span style={styles.badgeDot} /><span>B2B Marketplace</span></div>
       </div>
@@ -410,7 +496,7 @@ function SurplusExchangePage({ setActiveNav }) {
       
       <div style={styles.tabContainer}>
         <button style={{ ...styles.tabButton, ...(activeTab === "listings" ? styles.tabButtonActive : {}), ...(hoveredTab === "listings" && activeTab !== "listings" ? styles.tabButtonHover : {}) }} onMouseEnter={() => setHoveredTab("listings")} onMouseLeave={() => setHoveredTab(null)} onClick={() => setActiveTab("listings")}>Listings</button>
-        <button style={{ ...styles.tabButton, ...(activeTab === "restaurantDemand" ? styles.tabButtonActive : {}), ...(hoveredTab === "restaurantDemand" && activeTab !== "restaurantDemand" ? styles.tabButtonHover : {}) }} onMouseEnter={() => setHoveredTab("restaurantDemand")} onMouseLeave={() => setHoveredTab(null)} onClick={() => setActiveTab("restaurantDemand")}>Restaurant Demand</button>
+        <button style={{ ...styles.tabButton, ...(activeTab === "restaurantDemand" ? styles.tabButtonActive : {}), ...(hoveredTab === "restaurantDemand" && activeTab !== "restaurantDemand" ? styles.tabButtonHover : {}) }} onMouseEnter={() => setHoveredTab("restaurantDemand")} onMouseLeave={() => setHoveredTab(null)} onClick={() => setActiveTab("restaurantDemand")}>Establishment Demands</button>
       </div>
 
       {/* Search Bar */}
@@ -571,12 +657,6 @@ function SurplusExchangePage({ setActiveNav }) {
                      <span style={styles.demandLabel}>Needed By:</span>
                      <span style={styles.demandDate}><FaCalendarAlt /> {demand.neededDate}</span>
                   </div>
-                  {demand.contactNumber && (
-                    <div style={{...styles.demandItem, marginTop: '4px'}}>
-                       <span style={styles.demandLabel}>Contact:</span>
-                       <span style={styles.demandValue}>{demand.contactNumber}</span>
-                    </div>
-                  )}
                </div>
                {(()=>{
                   const negotiationId = `restaurant-${demand.id}`;
@@ -614,14 +694,14 @@ function SurplusExchangePage({ setActiveNav }) {
       {selectedItem && ReactDOM.createPortal(
         <div style={styles.modalOverlay} onClick={() => setSelectedItem(null)}>
           <div className="inner-blur-glass custom-scrollbar" style={{...styles.negotiateModalContent, ...(isMobile ? styles.negotiateModalContentMobile : {})}} onClick={e => e.stopPropagation()}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-              <h2 style={{...styles.modalTitle, margin: 0, textAlign: 'left'}}>{modalType === 'negotiate' ? 'Negotiate Price' : 'Make an Offer'}</h2>
+            <div style={styles.negotiationHeader}>
+              <h2 style={styles.negotiationTitle}>{modalType === 'negotiate' ? 'Negotiate Price' : 'Make an Offer'}</h2>
               <button style={styles.saveAndCloseBtn} onClick={() => setSelectedItem(null)}>Save & Close</button>
             </div>
             
             <div style={styles.negotiateProductSummary}>
-              <div style={{fontSize: '48px'}}>{modalType === 'negotiate' ? '🍅' : '🥕'}</div>
-              <div>
+              <div style={{...styles.negotiateProductIcon, ...(isMobile ? styles.negotiateProductIconMobile : {})}}>{modalType === 'negotiate' ? '🍅' : '🥕'}</div>
+              <div style={styles.negotiateProductDetails}>
                 <h3 style={styles.negotiateProductTitle}>{selectedItem.product}</h3>
                 <p style={styles.negotiateProductFarmer}>
                   {modalType === 'negotiate' ? `from ${selectedItem.farmer}` : `requested by ${selectedItem.buyer}`}
@@ -683,12 +763,46 @@ function SurplusExchangePage({ setActiveNav }) {
                     <button style={styles.reopenBtn} onClick={handleReopen}>Re-open Negotiation</button>
                   </div>
                 ) : (
-                    <div style={styles.negotiateInputArea}>
-                      {modalType === 'negotiate' && ( <div style={styles.suggestionRow}> {[0.95, 0.9, 0.85].map(multiplier => ( <button key={multiplier} style={styles.suggestionCard} onClick={() => setOfferPrice((selectedItem.price * multiplier).toFixed(2))}> ₱{(selectedItem.price * multiplier).toFixed(2)} </button> ))} </div> )}
-                      <div style={styles.offerInputWrapper}>
-                        <span style={styles.offerInputCurrency}>₱</span>
-                        <input id="offer-input" type="number" style={styles.offerInput} placeholder={modalType === 'negotiate' ? "Your Offer Price" : "Your Supply Price"} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} disabled={isSubmitting || sellerStatus === 'accepted'} />
-                        <button style={styles.sendOfferBtn} onClick={modalType === 'negotiate' ? handleSendOffer : handleMakeOffer} disabled={isSubmitting || sellerStatus === 'accepted' || !offerPrice}> {isSubmitting ? "..." : "Send"} </button>
+                    <div style={{...styles.negotiateInputArea, ...(isMobile ? styles.negotiateInputAreaMobile : {})}}>
+                      <div style={styles.negotiationQuickPanel}>
+                        <div style={styles.quickPriceRow}>
+                          <span style={styles.quickPriceLabel}>Quick prices</span>
+                          {getQuickPrices().map(price => (
+                            <button key={price} style={styles.quickPricePill} onClick={() => setNegotiationDraft(buildQuickPriceMessage(price))}>
+                              ₱{price}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={styles.quickPromptRow}>
+                          {getQuickMessages().map(message => (
+                            <button key={message} style={styles.quickPromptBtn} onClick={() => setNegotiationDraft(message)}>
+                              {message}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={styles.messageInputWrapper}>
+                        <button type="button" style={{...styles.chatIconButton, ...(isMobile ? styles.chatIconButtonMobile : {})}} aria-label="Voice input">
+                          <FaMicrophone />
+                        </button>
+                        <button type="button" style={{...styles.chatIconButton, ...(isMobile ? styles.chatIconButtonMobile : {})}} aria-label="Attach image">
+                          <FaImage />
+                        </button>
+                        <textarea
+                          ref={negotiationInputRef}
+                          id="offer-input"
+                          className="custom-scrollbar"
+                          rows={1}
+                          style={{...styles.negotiationInput, ...(isMobile ? styles.negotiationInputMobile : {})}}
+                          placeholder={modalType === 'negotiate' ? "Write your message to the seller..." : "Write your message to the buyer..."}
+                          value={negotiationMessage}
+                          onChange={handleNegotiationMessageChange}
+                          onKeyDown={handleNegotiationKeyDown}
+                          disabled={isSubmitting || sellerStatus === 'accepted'}
+                        />
+                        <button style={{...styles.sendOfferBtn, ...(isMobile ? styles.sendOfferBtnMobile : {})}} onClick={modalType === 'negotiate' ? handleSendOffer : handleMakeOffer} disabled={isSubmitting || sellerStatus === 'accepted' || !negotiationMessage.trim()}>
+                          {isSubmitting ? "..." : <FaPaperPlane />}
+                        </button>
                       </div>
                     </div>
                 )}
@@ -825,10 +939,6 @@ function SurplusExchangePage({ setActiveNav }) {
                 <label style={styles.inputLabel}>Needed By Date</label>
                 <input type="date" style={styles.inputField} value={newDemand.neededDate} onChange={e => handleNewDemandChange('neededDate', e.target.value)} required />
               </div>
-              <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Contact Number</label>
-                <input type="text" style={styles.inputField} value={newDemand.contactNumber} onChange={e => handleNewDemandChange('contactNumber', e.target.value)} required placeholder="e.g. 0912 345 6789" />
-              </div>
               <button type="submit" style={styles.submitBtn} disabled={isSubmittingDemand}>{isSubmittingDemand ? "Posting..." : "Post Demand"}</button>
             </form>
           </div>
@@ -924,32 +1034,45 @@ const styles = {
   td: { padding: "16px", fontSize: "14px", borderBottom: "1px solid rgba(0,0,0,0.02)" },
   tableActionBtn: { padding: "6px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", cursor: "pointer", fontWeight: 700, boxShadow: "0 18px 38px rgba(34,197,94,0.26)", transition: "all 0.2s ease" },
   floatingActionBtn: { marginTop: "24px", display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "999px", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", border: "1px solid rgba(255,255,255,0.35)", fontWeight: 700, cursor: "pointer", boxShadow: "0 18px 38px rgba(34,197,94,0.26)", fontSize: "14px", transition: "all 0.2s ease" }, 
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, animation: "fadeIn 0.3s ease" },
-  negotiateModalContent: { maxWidth: "640px", width: "100%", maxHeight: "90vh", background: "linear-gradient(145deg, rgba(255,255,255,0.9), rgba(240,253,244,0.85))", border: "1px solid rgba(255,255,255,0.8)", borderRadius: "28px", padding: "24px", display: "flex", flexDirection: "column", boxShadow: "0 20px 50px rgba(0,0,0,0.2)", animation: "scaleUp 0.4s cubic-bezier(.22,1,.36,1)", overflow: "hidden" },
-  negotiateModalContentMobile: { padding: "20px", maxHeight: "95vh" },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, animation: "fadeIn 0.3s ease", padding: "20px", boxSizing: "border-box" },
+  negotiateModalContent: { maxWidth: "880px", width: "100%", maxHeight: "calc(100vh - 40px)", background: "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(240,253,244,0.93))", border: "1px solid rgba(255,255,255,0.8)", borderRadius: "20px", padding: "20px", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", animation: "scaleUp 0.4s cubic-bezier(.22,1,.36,1)", overflow: "hidden", boxSizing: "border-box" },
+  negotiateModalContentMobile: { padding: "16px", maxHeight: "calc(100vh - 24px)", borderRadius: "18px" },
   closeBtn: { position: "absolute", top: "16px", right: "16px", zIndex: 50, background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", color: "rgba(0,0,0,0.6)", cursor: "pointer", transition: "background 0.2s ease" },
-  negotiateProductSummary: { display: "flex", alignItems: "center", gap: "16px", padding: "16px", background: "rgba(255,255,255,0.7)", borderRadius: "20px", border: "1px solid rgba(0,0,0,0.05)", marginBottom: "16px" },
-  negotiateProductTitle: { fontSize: "18px", fontWeight: 800, margin: 0, color: "#000" },
+  negotiationHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "12px" },
+  negotiationTitle: { margin: 0, color: "#000", fontSize: "18px", fontWeight: 800, lineHeight: 1.2, textAlign: "left" },
+  negotiateProductSummary: { display: "flex", alignItems: "center", gap: "12px", padding: "12px", background: "rgba(255,255,255,0.78)", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)", marginBottom: "10px", minWidth: 0 },
+  negotiateProductIcon: { width: "42px", height: "42px", flexShrink: 0, borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(21,128,61,0.08)", fontSize: "28px" },
+  negotiateProductIconMobile: { width: "38px", height: "38px", fontSize: "24px" },
+  negotiateProductDetails: { minWidth: 0, flex: 1 },
+  negotiateProductTitle: { fontSize: "16px", fontWeight: 800, margin: 0, color: "#000", lineHeight: 1.25 },
   negotiateProductFarmer: { fontSize: "13px", color: "rgba(0,0,0,0.6)", margin: 0 },
-  negotiatePriceInfo: { marginLeft: "auto", textAlign: "right" },
-  negotiateOriginalPriceLabel: { fontSize: "11px", fontWeight: 600, color: "rgba(0,0,0,0.5)", textTransform: "uppercase" },
-  negotiateOriginalPrice: { fontSize: "16px", fontWeight: 800, color: "#15803d" },
-  negotiateChatContainer: { flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", padding: "16px", background: "rgba(0,0,0,0.02)", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.03)" },
-  chatBubble: { maxWidth: "80%", padding: "10px 14px", borderRadius: "16px", lineHeight: 1.4, fontSize: "13px" },
+  negotiatePriceInfo: { marginLeft: "auto", textAlign: "right", flexShrink: 0 },
+  negotiateOriginalPriceLabel: { display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(0,0,0,0.5)", textTransform: "uppercase" },
+  negotiateOriginalPrice: { display: "block", fontSize: "14px", fontWeight: 800, color: "#15803d", lineHeight: 1.2 },
+  negotiateChatContainer: { flex: "1 1 auto", minHeight: "160px", maxHeight: "230px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", padding: "14px 4px 14px 0", background: "transparent" },
+  chatBubble: { maxWidth: "85%", padding: "12px 14px", borderRadius: "16px", lineHeight: 1.5, fontSize: "13px" },
   chatBubbleSystem: { alignSelf: "center", background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.6)", fontWeight: 500, fontSize: "11px", fontStyle: "italic" },
-  chatBubbleBuyer: { alignSelf: "flex-end", background: "linear-gradient(135deg, #15803d, #16a34a)", color: "#fff", borderBottomRightRadius: "4px" },
-  chatBubbleSeller: { alignSelf: "flex-start", background: "#fff", color: "#000", border: "1px solid rgba(0,0,0,0.08)", borderBottomLeftRadius: "4px" },
-  negotiateInputArea: { padding: "16px 0 8px" },
-  suggestionRow: { display: "flex", justifyContent: "center", gap: "8px", marginBottom: "12px" },
-  suggestionCard: { padding: "6px 12px", background: "rgba(255,255,255,0.8)", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "10px", fontSize: "12px", fontWeight: 700, color: "#15803d", cursor: "pointer", transition: "all 0.2s ease" },
-  offerInputWrapper: { display: "flex", alignItems: "center", background: "#fff", borderRadius: "14px", border: "1px solid rgba(0,0,0,0.1)", paddingLeft: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" },
-  offerInputCurrency: { fontSize: "14px", fontWeight: 700, color: "rgba(0,0,0,0.4)" },
-  offerInput: { flex: 1, border: "none", background: "transparent", padding: "12px 8px", fontSize: "14px", outline: "none" },
-  sendOfferBtn: { padding: "10px 16px", background: "#15803d", color: "#fff", border: "none", borderRadius: "10px", margin: "4px", fontWeight: 700, cursor: "pointer", transition: "background 0.2s ease" },
-  negotiateActions: { display: "flex", gap: "12px", marginTop: "16px", borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: "16px" },
-  declineBtn: { flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(220, 38, 38, 0.1)", color: "#dc2626", border: "none", fontWeight: 700, cursor: "pointer" },
-  counterBtn: { flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.05)", color: "#000", border: "none", fontWeight: 700, cursor: "pointer" },
-  acceptBtn: { flex: 1, padding: "12px", borderRadius: "12px", background: "linear-gradient(135deg, #4ade80, #22c55e)", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px rgba(34,197,94,0.3)" },
+  chatBubbleBuyer: { alignSelf: "flex-end", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", borderBottomRightRadius: "4px" },
+  chatBubbleSeller: { alignSelf: "flex-start", background: "#fff", color: "#000", border: "1px solid rgba(21,128,61,0.15)", borderBottomLeftRadius: "4px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" },
+  negotiateInputArea: { width: "100%", display: "flex", flexDirection: "column", gap: 0, border: "1px solid rgba(0,0,0,0.06)", borderRadius: "18px", overflow: "hidden", background: "rgba(255,255,255,0.38)", boxSizing: "border-box" },
+  negotiateInputAreaMobile: { borderRadius: "16px" },
+  negotiationQuickPanel: { padding: "10px 12px", background: "rgba(249,250,251,0.18)", backdropFilter: "none", WebkitBackdropFilter: "none", borderTop: "1px solid rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", gap: "8px", boxSizing: "border-box" },
+  quickPriceRow: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px", width: "100%", minHeight: "28px" },
+  quickPriceLabel: { marginRight: "2px", color: "#15803d", fontSize: "11px", fontWeight: 800, lineHeight: 1.2, whiteSpace: "nowrap" },
+  quickPricePill: { height: "26px", padding: "0 10px", borderRadius: "999px", background: "#ffffff", border: "1px solid rgba(21,128,61,0.22)", color: "#15803d", fontSize: "12px", lineHeight: "24px", fontWeight: 800, cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", transition: "all 0.2s ease" },
+  quickPromptRow: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "6px", maxHeight: "104px", overflowY: "auto", paddingRight: "2px", width: "100%", boxSizing: "border-box" },
+  quickPromptBtn: { width: "100%", minWidth: 0, padding: "7px 10px", borderRadius: "12px", background: "rgba(255,255,255,0.68)", border: "1px solid rgba(21,128,61,0.14)", color: "#374151", fontSize: "11px", lineHeight: 1.25, fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", textAlign: "left", whiteSpace: "normal", boxSizing: "border-box" },
+  messageInputWrapper: { padding: "12px", background: "#ffffff", borderTop: "1px solid rgba(0,0,0,0.05)", display: "grid", gridTemplateColumns: "38px 38px minmax(0, 1fr) 44px", gap: "10px", alignItems: "end", width: "100%", boxSizing: "border-box" },
+  chatIconButton: { width: "38px", height: "38px", flexShrink: 0, borderRadius: "50%", border: "none", background: "transparent", color: "#6b7280", fontSize: "17px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "background 0.2s, color 0.2s" },
+  chatIconButtonMobile: { width: "34px", height: "34px", fontSize: "15px" },
+  negotiationInput: { flex: 1, minWidth: 0, height: "44px", minHeight: "44px", maxHeight: "92px", padding: "11px 14px", borderRadius: "24px", border: "1px solid rgba(0,0,0,0.1)", background: "#f3f4f6", color: "#111827", fontSize: "14px", outline: "none", resize: "none", overflowY: "auto", lineHeight: 1.45, fontFamily: "inherit", transition: "border-color 0.2s, background 0.2s", boxSizing: "border-box" },
+  negotiationInputMobile: { height: "40px", minHeight: "40px", padding: "9px 12px", fontSize: "13px" },
+  sendOfferBtn: { width: "44px", height: "44px", flexShrink: 0, borderRadius: "999px", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", border: "1px solid rgba(255,255,255,0.35)", color: "#062018", fontSize: "15px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)", transition: "transform 0.2s ease, box-shadow 0.2s ease", fontWeight: 700 },
+  sendOfferBtnMobile: { width: "40px", height: "40px" },
+  negotiateActions: { display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px", borderTop: "1px solid rgba(0,0,0,0.05)", paddingTop: "10px" },
+  declineBtn: { flex: "1 1 110px", minHeight: "38px", padding: "9px 10px", borderRadius: "12px", background: "rgba(220, 38, 38, 0.1)", color: "#dc2626", border: "none", fontSize: "12px", fontWeight: 700, cursor: "pointer" },
+  counterBtn: { flex: "1 1 110px", minHeight: "38px", padding: "9px 10px", borderRadius: "12px", background: "rgba(0,0,0,0.05)", color: "#000", border: "none", fontSize: "12px", fontWeight: 700, cursor: "pointer" },
+  acceptBtn: { flex: "1 1 132px", minHeight: "38px", padding: "9px 10px", borderRadius: "12px", background: "linear-gradient(135deg, #4ade80, #22c55e)", color: "#fff", border: "none", fontSize: "12px", fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 16px rgba(34,197,94,0.3)" },
   completedIndicator: { marginLeft: '8px', fontSize: '10px', fontWeight: 700, color: '#6b7280', background: 'rgba(107, 114, 128, 0.1)', padding: '2px 6px', borderRadius: '6px', border: '1px solid rgba(107, 114, 128, 0.2)' },
   viewArchiveBtn: { background: "rgba(107, 114, 128, 0.1)", color: "#4b5563", border: "1px solid rgba(107, 114, 128, 0.2)" },
   ongoingIndicator: { marginLeft: '8px', fontSize: '10px', fontWeight: 700, color: '#059669', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.2)' },

@@ -30,8 +30,9 @@ import AdminPortal from "./pages/AdminPortal"; // Import the AdminPortal
 import SeasonalHarvestPage from "./pages/SeasonalHarvestPage";
 
 import EventsAndWorkshopsPage from "./pages/EventsAndWorkshopsPage"; // Import the new EventsAndWorkshopsPage
-import { FaShoppingCart, FaCalendarAlt, FaUserPlus, FaRobot, FaTrash, FaArrowLeft, FaExclamationTriangle, FaCheckCircle, FaChevronDown, FaBell } from "react-icons/fa";
-import { Leaf, Stethoscope, Users, Sprout, Sun, Activity, HeartPulse, Globe, MessageCircle, Droplet, Wheat, Microscope, Bug, Share2, Store, TrendingUp, Handshake, Sparkles } from "lucide-react";
+import { FaShoppingCart, FaCalendarAlt, FaUserPlus, FaRobot, FaTrash, FaArrowLeft, FaExclamationTriangle, FaCheckCircle, FaChevronDown, FaBell, FaCalendar } from "react-icons/fa";
+import { Leaf, Stethoscope, Users, Sprout, Sun, Activity, HeartPulse, Globe, MessageCircle, Droplet, Wheat, Microscope, Bug, Share2, Store, TrendingUp, Handshake, Sparkles, Home, Headset, Award, GraduationCap, Wrench, Calendar, Info, CircleUserRound } from "lucide-react";
+import { BiCalendarEvent } from "react-icons/bi";
 const navItems = ["Home", "About Us", "Product & Services", "Target Market", "Our Team", "Seasonal Harvest"];
 
 const initialProducts = [
@@ -145,6 +146,7 @@ const CustomDropdown = ({ options, value, onChange }) => {
 
 function App() {
   const [activeNav, setActiveNav] = useState("Login");
+  const [mobileAuthView, setMobileAuthView] = useState("landing");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState(null); // State for navigation buttons
@@ -200,6 +202,7 @@ function App() {
   const [ecoPointsSection, setEcoPointsSection] = useState("All");
   const [isEcoPointsDropdownOpen, setIsEcoPointsDropdownOpen] = useState(false);
   const [hoveredEcoPointsOption, setHoveredEcoPointsOption] = useState(null);
+  const [showSectorActionsMobile, setShowSectorActionsMobile] = useState(false);
   const [redeemHistoryFilter, setRedeemHistoryFilter] = useState("All");
   const [isRedeemFilterDropdownOpen, setIsRedeemFilterDropdownOpen] = useState(false);
   const [hoveredRedeemFilterOption, setHoveredRedeemFilterOption] = useState(null);
@@ -629,13 +632,21 @@ function App() {
     setAuthMessage(null);
   }, [activeNav]);
 
-  const handleNavChange = (navName) => {
+  const handleNavChange = (navName, options = {}) => {
     setActiveNav(navName);
+    if (isMobile && (navName === "Login" || navName === "Sign Up")) {
+      setMobileAuthView(options.authView || "landing");
+    }
     if (isMobile) {
       setIsMobileMenuOpen(false);
       setIsProductDropdownOpen(false);
       setIsTargetDropdownOpen(false);
     }
+  };
+
+  const openMobileAuthForm = (navName) => {
+    setMobileAuthView("form");
+    handleNavChange(navName, { authView: "form" });
   };
 
   const isAuthPage = activeNav === "Login" || activeNav === "Sign Up";
@@ -775,6 +786,15 @@ function App() {
     }
   }[activeHeroTab];
 
+  const isEcoAllMobile = isMobile && ecoPointsSection === "All";
+  const mobileEcoGlassCardStyle = {
+    padding: "18px",
+    borderRadius: "18px",
+    background: "linear-gradient(150deg, rgba(255,255,255,0.76), rgba(255,255,255,0.42))",
+    border: "1px solid rgba(255,255,255,0.8)",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)",
+  };
+
   return (
     <div style={{ 
       ...styles.page, 
@@ -892,6 +912,29 @@ function App() {
             transform: translate(-50%, -50%);
             animation: orbitSpin 2s linear infinite;
           }
+          .orbit-container-mobile {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            box-sizing: border-box;
+            padding: 2px;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 1;
+          }
+          .orbit-container-mobile::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: conic-gradient(from 0deg, transparent 70%, rgba(134,239,172,0.8) 90%, rgba(125,211,252,1) 100%);
+            transform: translate(-50%, -50%);
+            animation: orbitSpin 2s linear infinite;
+          }
           @keyframes chatAiPulseGlow {
             0%, 100% { transform: scale(1); opacity: 0.5; filter: blur(15px); }
             50% { transform: scale(1.15); opacity: 0.8; filter: blur(25px); }
@@ -904,6 +947,11 @@ function App() {
             animation: chatAiPulseGlow 3s infinite ease-in-out;
             pointer-events: none;
             z-index: -1;
+          }
+          @keyframes mobileWelcomeGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
           }
         `}
       </style>
@@ -933,13 +981,65 @@ function App() {
           </div> {/* End of logoWrap */}
           {!isAuthPage && activeNav !== "Admin Portal" && (
             <>
-            <button
-              type="button"
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "auto", zIndex: 2000 }}>
+              {isMobile && isLoggedIn && (
+                <div style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.hamburgerButton,
+                      marginLeft: 0,
+                      ...(isNotificationOpen ? styles.hamburgerButtonActive : {}),
+                    }}
+                    onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  >
+                    <FaBell size={18} color={isNotificationOpen ? "#15803d" : "rgba(0,0,0,0.7)"} style={{ animation: notifBadgeAnim ? "shakeIcon 0.5s ease-in-out" : "none" }} />
+                    {notifications.filter(n => !n.read).length > 0 && (
+                      <span className={notifBadgeAnim ? "animate-badgePop" : ""} style={{ position: "absolute", top: "-2px", right: "-2px", background: "#e11d48", color: "#fff", borderRadius: "50%", padding: "2px 5px", fontSize: "9px", fontWeight: "bold", border: "1px solid rgba(255,255,255,0.5)" }}>
+                        {notifications.filter(n => !n.read).length}
+                      </span>
+                    )}
+                  </button>
+                  {isNotificationOpen && (
+                    <div style={{ position: "absolute", top: "100%", right: 0, paddingTop: "8px", zIndex: 100, width: "280px" }}>
+                      <div className="inner-blur-glass" style={{ ...styles.dropdownMenu, width: "100%", maxWidth: "100%", maxHeight: "300px", overflowY: "auto", padding: "8px" }}>
+                        {notifications.length === 0 ? (
+                          <div style={{ padding: "12px", textAlign: "center", fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>No notifications</div>
+                        ) : (
+                          <>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px 8px", borderBottom: "1px solid rgba(0,0,0,0.05)", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.6)" }}>Notifications</span>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setNotifications(notifications.map(n => ({ ...n, read: true }))); }} 
+                                style={{ background: "transparent", border: "none", fontSize: "11px", fontWeight: 600, color: "#15803d", cursor: "pointer", padding: 0 }}
+                              >
+                                Mark all as read
+                              </button>
+                            </div>
+                            {notifications.map((notif, idx) => (
+                              <div key={idx} style={{ padding: "10px 12px", borderBottom: idx === notifications.length - 1 ? "none" : "1px solid rgba(0,0,0,0.05)", background: notif.read ? "transparent" : "rgba(34, 197, 94, 0.05)", fontSize: "13px", color: "#000", textAlign: "left", lineHeight: 1.4, width: "100%", boxSizing: "border-box", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                                 {!notif.read && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#15803d", marginTop: "6px", flexShrink: 0 }} />}
+                                 <div>
+                                   {notif.message}
+                                   <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.5)", marginTop: "4px" }}>{notif.time}</div>
+                                 </div>
+                               </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <button
+                type="button"
                 className="mobile-hamburger"
                 aria-label="Toggle navigation menu"
                 aria-expanded={isMobileMenuOpen}
                 style={{
                   ...styles.hamburgerButton,
+                  marginLeft: 0,
                   ...(isMobileMenuOpen ? styles.hamburgerButtonActive : {}),
                 }}
                 onClick={() => setIsMobileMenuOpen((open) => !open)}
@@ -948,6 +1048,7 @@ function App() {
                 <span style={{ ...styles.hamburgerLine, ...(isMobileMenuOpen ? styles.hamburgerLineMiddleOpen : {}) }} />
                 <span style={{ ...styles.hamburgerLine, ...(isMobileMenuOpen ? styles.hamburgerLineBottomOpen : {}) }} />
               </button>
+            </div>
               {isMobileMenuOpen && (
                 <button
                   type="button"
@@ -960,7 +1061,9 @@ function App() {
                 className={`nav-links-panel ${isMobileMenuOpen ? "mobile-menu-open" : ""}`}
                 style={{ ...styles.navLinks, ...(isMobile ? styles.navLinksMobile : {}), ...(isMobile && !isMobileMenuOpen ? styles.navLinksMobileHidden : {}) }}
               >
-                {navItems.map((item) => {
+                {navItems
+                  .filter((item) => !isMobile || !["About Us", "Seasonal Harvest"].includes(item))
+                  .map((item) => {
                   if (item === "Target Market") {
                     const isTargetMarketActive = activeNav === "Target Market" || activeNav === "Target Market Explore" || activeNav === "Sustainability App Market";
                     let targetMarketLabel = item;
@@ -1270,88 +1373,105 @@ function App() {
                       <div style={{ width: isMobile ? "100%" : "1px", height: isMobile ? "1px" : "auto", background: "rgba(0,0,0,0.1)", margin: isMobile ? "4px 0" : "0 4px" }} />
                       
                       {/* Notifications Dropdown */}
-                      <div
-                        style={{
-                          position: "relative",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          ...(isMobile ? styles.navDropdownWrapMobile : {}),
-                        }}
-                        onMouseEnter={() => !isMobile && setIsNotificationOpen(true)}
-                        onMouseLeave={() => !isMobile && setIsNotificationOpen(false)}
-                      >
+                      {!isMobile && (
+                        <div
+                          style={{
+                            position: "relative",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            order: 2,
+                          }}
+                          onMouseEnter={() => setIsNotificationOpen(true)}
+                          onMouseLeave={() => setIsNotificationOpen(false)}
+                        >
+                          <button
+                            type="button"
+                            style={{
+                              ...styles.linkBtn,
+                              position: "relative",
+                              background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))",
+                              border: "1px solid rgba(255,255,255,0.35)",
+                              color: "#062018",
+                              boxShadow: "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: 0,
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "50%",
+                              marginRight: "8px",
+                              flexShrink: 0
+                            }}
+                            title="Notifications"
+                          >
+                            <FaBell size={16} style={{ animation: notifBadgeAnim ? "shakeIcon 0.5s ease-in-out" : "none" }} />
+                            {notifications.filter(n => !n.read).length > 0 && (
+                              <span className={notifBadgeAnim ? "animate-badgePop" : ""} style={{ position: "absolute", top: "-2px", right: "-2px", background: "#e11d48", color: "#fff", borderRadius: "50%", padding: "2px 5px", fontSize: "9px", fontWeight: "bold", border: "1px solid rgba(255,255,255,0.5)" }}>
+                                {notifications.filter(n => !n.read).length}
+                              </span>
+                            )}
+                          </button>
+
+                          {isNotificationOpen && (
+                            <div style={{ position: "absolute", top: "100%", right: 0, paddingTop: "8px", zIndex: 100, width: "280px" }}>
+                              <div className="inner-blur-glass" style={{ ...styles.dropdownMenu, width: "100%", maxWidth: "100%", maxHeight: "300px", overflowY: "auto", padding: "8px" }}>
+                                {notifications.length === 0 ? (
+                                  <div style={{ padding: "12px", textAlign: "center", fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>No notifications</div>
+                                ) : (
+                                  <>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px 8px", borderBottom: "1px solid rgba(0,0,0,0.05)", marginBottom: "4px" }}>
+                                      <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.6)" }}>Notifications</span>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); setNotifications(notifications.map(n => ({ ...n, read: true }))); }} 
+                                        style={{ background: "transparent", border: "none", fontSize: "11px", fontWeight: 600, color: "#15803d", cursor: "pointer", padding: 0 }}
+                                      >
+                                        Mark all as read
+                                      </button>
+                                    </div>
+                                    {notifications.map((notif, idx) => (
+                                      <div key={idx} style={{ padding: "10px 12px", borderBottom: idx === notifications.length - 1 ? "none" : "1px solid rgba(0,0,0,0.05)", background: notif.read ? "transparent" : "rgba(34, 197, 94, 0.05)", fontSize: "13px", color: "#000", textAlign: "left", lineHeight: 1.4, width: "100%", boxSizing: "border-box", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                                         {!notif.read && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#15803d", marginTop: "6px", flexShrink: 0 }} />}
+                                         <div>
+                                           {notif.message}
+                                           <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.5)", marginTop: "4px" }}>{notif.time}</div>
+                                         </div>
+                                       </div>
+                                    ))}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {isMobile ? (
                         <button
                           type="button"
                           style={{
                             ...styles.linkBtn,
-                            position: "relative",
-                            background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))",
-                            border: "1px solid rgba(255,255,255,0.35)",
-                            color: "#062018",
-                            boxShadow: "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: 0,
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "50%",
-                            marginRight: isMobile ? "0" : "8px",
-                            marginBottom: isMobile ? "8px" : "0",
-                            flexShrink: 0
+                            ...styles.linkBtnMobile,
+                            ...(hoveredProfileDropdown === "Logout" ? styles.linkBtnHover : {}),
                           }}
                           onClick={() => {
-                            if (isMobile) setIsNotificationOpen(!isNotificationOpen);
+                            setIsMobileMenuOpen(false);
+                            handleLogout();
                           }}
-                          title="Notifications"
+                          onMouseEnter={() => setHoveredProfileDropdown("Logout")}
+                          onMouseLeave={() => setHoveredProfileDropdown(null)}
                         >
-                          <FaBell size={16} style={{ animation: notifBadgeAnim ? "shakeIcon 0.5s ease-in-out" : "none" }} />
-                          {notifications.filter(n => !n.read).length > 0 && (
-                            <span className={notifBadgeAnim ? "animate-badgePop" : ""} style={{ position: "absolute", top: "-2px", right: "-2px", background: "#e11d48", color: "#fff", borderRadius: "50%", padding: "2px 5px", fontSize: "9px", fontWeight: "bold", border: "1px solid rgba(255,255,255,0.5)" }}>
-                              {notifications.filter(n => !n.read).length}
-                            </span>
-                          )}
+                          Logout
                         </button>
-
-                        {isNotificationOpen && (
-                          <div style={{ position: isMobile ? "relative" : "absolute", top: isMobile ? "auto" : "100%", right: isMobile ? "auto" : 0, paddingTop: isMobile ? "0px" : "8px", zIndex: 100, width: isMobile ? "100%" : "280px" }}>
-                            <div className="inner-blur-glass" style={{ ...styles.dropdownMenu, ...(isMobile ? styles.dropdownMenuMobile : {}), width: "100%", maxWidth: "100%", maxHeight: "300px", overflowY: "auto", padding: "8px" }}>
-                              {notifications.length === 0 ? (
-                                <div style={{ padding: "12px", textAlign: "center", fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>No notifications</div>
-                              ) : (
-                                <>
-                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px 8px", borderBottom: "1px solid rgba(0,0,0,0.05)", marginBottom: "4px" }}>
-                                    <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.6)" }}>Notifications</span>
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); setNotifications(notifications.map(n => ({ ...n, read: true }))); }} 
-                                      style={{ background: "transparent", border: "none", fontSize: "11px", fontWeight: 600, color: "#15803d", cursor: "pointer", padding: 0 }}
-                                    >
-                                      Mark all as read
-                                    </button>
-                                  </div>
-                                  {notifications.map((notif, idx) => (
-                                    <div key={idx} style={{ padding: "10px 12px", borderBottom: idx === notifications.length - 1 ? "none" : "1px solid rgba(0,0,0,0.05)", background: notif.read ? "transparent" : "rgba(34, 197, 94, 0.05)", fontSize: "13px", color: "#000", textAlign: "left", lineHeight: 1.4, width: "100%", boxSizing: "border-box", display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                                       {!notif.read && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#15803d", marginTop: "6px", flexShrink: 0 }} />}
-                                       <div>
-                                         {notif.message}
-                                         <div style={{ fontSize: "10px", color: "rgba(0,0,0,0.5)", marginTop: "4px" }}>{notif.time}</div>
-                                       </div>
-                                     </div>
-                                  ))}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
+                      ) : (
                       <div
                         style={{
                           position: "relative",
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "center",
+                          order: 1,
                           ...(isMobile ? styles.navDropdownWrapMobile : {}),
                         }}
                         onMouseEnter={() => !isMobile && setIsProfileDropdownOpen(true)}
@@ -1443,34 +1563,38 @@ function App() {
                               >
                                 My Certificate
                               </button>
-                              <button 
-                                type="button" 
-                                style={{ ...styles.dropdownItem, ...(isMobile ? styles.dropdownItemMobile : {}), ...(hoveredProfileDropdown === "EcoPoints" ? styles.dropdownItemHover : {}) }} 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setIsProfileDropdownOpen(false);
-                                  setShowSettingsModal(true);
-                                  setSettingsTab("ecopoints");
-                                }}
-                                onMouseEnter={() => setHoveredProfileDropdown("EcoPoints")} 
-                                onMouseLeave={() => setHoveredProfileDropdown(null)}
-                              >
-                                EcoPoints & Rewards
-                              </button>
-                              <button 
-                                type="button" 
-                                style={{ ...styles.dropdownItem, ...(isMobile ? styles.dropdownItemMobile : {}), ...(hoveredProfileDropdown === "EarnHistory" ? styles.dropdownItemHover : {}) }} 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setIsProfileDropdownOpen(false);
-                                  setShowSettingsModal(true);
-                                  setSettingsTab("earnHistory");
-                                }}
-                                onMouseEnter={() => setHoveredProfileDropdown("EarnHistory")} 
-                                onMouseLeave={() => setHoveredProfileDropdown(null)}
-                              >
-                                Earn History
-                              </button>
+	                              {!isMobile && (
+	                                <>
+	                                  <button 
+	                                    type="button" 
+	                                    style={{ ...styles.dropdownItem, ...(hoveredProfileDropdown === "EcoPoints" ? styles.dropdownItemHover : {}) }} 
+	                                    onClick={(e) => {
+	                                      e.stopPropagation();
+	                                      setIsProfileDropdownOpen(false);
+	                                      setShowSettingsModal(true);
+	                                      setSettingsTab("ecopoints");
+	                                    }}
+	                                    onMouseEnter={() => setHoveredProfileDropdown("EcoPoints")} 
+	                                    onMouseLeave={() => setHoveredProfileDropdown(null)}
+	                                  >
+	                                    EcoPoints & Rewards
+	                                  </button>
+	                                  <button 
+	                                    type="button" 
+	                                    style={{ ...styles.dropdownItem, ...(hoveredProfileDropdown === "EarnHistory" ? styles.dropdownItemHover : {}) }} 
+	                                    onClick={(e) => {
+	                                      e.stopPropagation();
+	                                      setIsProfileDropdownOpen(false);
+	                                      setShowSettingsModal(true);
+	                                      setSettingsTab("earnHistory");
+	                                    }}
+	                                    onMouseEnter={() => setHoveredProfileDropdown("EarnHistory")} 
+	                                    onMouseLeave={() => setHoveredProfileDropdown(null)}
+	                                  >
+	                                    Earn History
+	                                  </button>
+	                                </>
+	                              )}
                               <button 
                                 type="button" 
                                 style={{ ...styles.dropdownItem, ...(isMobile ? styles.dropdownItemMobile : {}), ...(hoveredProfileDropdown === "Orders" ? styles.dropdownItemHover : {}) }} 
@@ -1526,6 +1650,7 @@ function App() {
                           </div>
                         )}
                       </div>
+                      )}
                     </>
                   )}
               </div>
@@ -1538,128 +1663,563 @@ function App() {
           <div style={{ ...styles.hero, flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", gap: "clamp(24px, 4vw, 60px)", maxWidth: "1200px", textAlign: "left", ...(isMobile ? styles.heroMobile : {}) }}>
             
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start", maxWidth: isMobile ? "100%" : "680px" }}>
-              {/* Badge */}
-              <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
-                <span style={styles.badgeDot} />
-                <span style={styles.glassContentLayer}>Agricultural Innovation · Philippines</span>
-              </div>
+              
+              {isMobile && (
+                <div className="inner-blur-glass" style={{ 
+                  ...styles.mobileWelcomeCard, 
+                  margin: "0 auto 24px auto", 
+                  width: "calc(100vw - clamp(60px, 16vw, 100px))",
+                  maxWidth: "360px",
+                  flexDirection: "column",
+                  padding: "24px 16px"
+                }}>
+                  <div style={{ display: "flex", flexDirection: "row", gap: "12px", width: "100%" }}>
+                    <div style={{ ...styles.mobileWelcomeText, display: "flex", flexDirection: "column", gap: "8px", whiteSpace: "normal", textAlign: "left", width: "auto", flex: 1, marginTop: "0", alignSelf: "flex-start" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 600, color: "rgba(6, 32, 24, 0.7)", lineHeight: 1 }}>Welcome back,</span>
+                      <span style={{ fontSize: "clamp(18px, 6vw, 22px)", fontWeight: 800, color: "#062018", whiteSpace: "normal", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>{loggedInUser || "Google User"}</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 800, color: "#15803d", lineHeight: 1.2 }}>
+                          Grow Food. Build Community.<br />Earn Sustainably.
+                        </span>
+                        <span style={{ fontSize: "10px", fontWeight: 500, color: "rgba(0,0,0,0.65)", lineHeight: 1.3 }}>
+                          EcoEquity is a digital-first, high-engagement platform designed to boost agricultural self-sufficiency in the Philippines, starting at the household and community level.
+                        </span>
+                      </div>
+                    </div>
+                    <div style={styles.mobileWelcomeAvatar}>
+                      {profilePic ? (
+                        <img src={profilePic} alt="User Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        loggedInUser ? loggedInUser.charAt(0).toUpperCase() : "G"
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", marginTop: "16px", width: "100%" }}>
+                    <button type="button" onClick={() => handleNavChange("Contact")} style={{ ...styles.primaryBtn, padding: "10px 12px", fontSize: "12px", flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <span aria-hidden="true" style={styles.primaryInnerBlur} />
+                      <span style={styles.glassContentLayer}>Get in Touch</span>
+                    </button>
+                    <button type="button" onClick={() => handleNavChange("Learn More")} style={{ ...styles.glassBtn, padding: "10px 12px", fontSize: "12px", flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <span aria-hidden="true" style={styles.glassInnerBlur} />
+                      <span style={styles.glassContentLayer}>Learn More</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
-                {isMobile ? (
-                  <>
-                    Grow Food.
-                    <br />
-                    <span style={styles.titleAccent}>Build</span>
-                    <br />
-                    <span style={styles.titleAccent}>Community.</span>
-                    <br />
-                    Earn Sustainably.
-                  </>
-                ) : (
+              {/* Quick Actions Grid for Mobile */}
+              {isMobile && (
+                <div className="inner-blur-glass" style={{ 
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  width: "calc(100vw - clamp(60px, 16vw, 100px))", 
+                  maxWidth: "360px", 
+                  margin: "0 auto 24px auto",
+                  padding: "16px",
+                  borderRadius: "18px",
+                  background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))",
+                  border: "1px solid rgba(255,255,255,0.8)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)",
+                  backdropFilter: "blur(20px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                  boxSizing: "border-box"
+                }}>
+                  <h3 style={{ margin: 0, textAlign: "left", fontSize: "16px", fontWeight: 800, color: "#062018", lineHeight: 1.1 }}>
+                    Product &amp; Services.
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", width: "100%" }}>
+                    {[
+                      { nav: "Shop All Products", icon: <Store size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                      { nav: "Starter Kits & Toolsets", icon: <Wrench size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                      { nav: "AI Data Subscription", icon: <Headset size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                      { nav: "Specialist Certification", icon: <GraduationCap size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                      { action: () => setShowAIChat(true), nav: "ChatWithAI", icon: <FaRobot size={36} style={{ fill: "url(#appIconGradient)" }} /> },
+                      { nav: "ExpertSupportPage", icon: <FaCalendar size={36} style={{ fill: "url(#appIconGradient)" }} /> },
+                      { nav: "SurplusExchangePage", icon: <Handshake size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                      { nav: "ImpactTrackingPage", icon: <Activity size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> }
+                    ].map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => item.action ? item.action() : handleNavChange(item.nav)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "8px 0",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          outline: "none",
+                          transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease",
+                          filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "scale(1.15) translateY(-2px)";
+                          e.currentTarget.style.filter = "drop-shadow(0 8px 12px rgba(0,0,0,0.25))";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "scale(1) translateY(0)";
+                          e.currentTarget.style.filter = "drop-shadow(0 4px 6px rgba(0,0,0,0.15))";
+                        }}
+                        onTouchStart={(e) => {
+                          e.currentTarget.style.transform = "scale(1.15) translateY(-2px)";
+                          e.currentTarget.style.filter = "drop-shadow(0 8px 12px rgba(0,0,0,0.25))";
+                        }}
+                        onTouchEnd={(e) => {
+                          e.currentTarget.style.transform = "scale(1) translateY(0)";
+                          e.currentTarget.style.filter = "drop-shadow(0 4px 6px rgba(0,0,0,0.15))";
+                        }}
+                      >
+                        {item.icon}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSectorActionsMobile(!showSectorActionsMobile)}
+                    aria-label={showSectorActionsMobile ? "Hide sector actions" : "Show sector actions"}
+                    style={{
+                      width: "26px",
+                      height: "24px",
+                      margin: "-4px 0 -4px auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "linear-gradient(135deg, rgba(134,239,172,0.38), rgba(125,211,252,0.32))",
+                      border: "1px solid rgba(255,255,255,0.72)",
+                      borderRadius: "999px",
+                      color: "#15803d",
+                      cursor: "pointer",
+                      boxShadow: "0 8px 20px rgba(34,197,94,0.14), inset 0 1px 0 rgba(255,255,255,0.62)",
+                      backdropFilter: "blur(14px) saturate(170%)",
+                      WebkitBackdropFilter: "blur(14px) saturate(170%)",
+                      transition: "transform 0.22s ease, box-shadow 0.22s ease"
+                    }}
+                  >
+                    <FaChevronDown size={10} style={{ transform: showSectorActionsMobile ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.24s ease" }} />
+                  </button>
+                  {showSectorActionsMobile && (
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                        gap: "8px",
+                        width: "100%",
+                        paddingTop: "2px",
+                        animation: "fadeInUp 0.28s cubic-bezier(.22,1,.36,1) both"
+                      }}
+                    >
+                      {[
+                        { nav: "OurImpactPage", label: "Impact", icon: <Globe size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                        { nav: "LGUPartnershipPage", label: "LGU", icon: <Handshake size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                        { nav: "IncomeGenerationPage", label: "Income", icon: <TrendingUp size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                        { nav: "NativeSeedBankPage", label: "Seeds", icon: <Sprout size={36} color="url(#appIconGradient)" strokeWidth={2.5} /> }
+                      ].map((item) => (
+                        <button
+                          key={item.nav}
+                          type="button"
+                          onClick={() => handleNavChange(item.nav)}
+                          aria-label={item.label}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "8px 0",
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            outline: "none",
+                            transition: "transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease",
+                            filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.15) translateY(-2px)";
+                            e.currentTarget.style.filter = "drop-shadow(0 8px 12px rgba(0,0,0,0.25))";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1) translateY(0)";
+                            e.currentTarget.style.filter = "drop-shadow(0 4px 6px rgba(0,0,0,0.15))";
+                          }}
+                          onTouchStart={(e) => {
+                            e.currentTarget.style.transform = "scale(1.15) translateY(-2px)";
+                            e.currentTarget.style.filter = "drop-shadow(0 8px 12px rgba(0,0,0,0.25))";
+                          }}
+                          onTouchEnd={(e) => {
+                            e.currentTarget.style.transform = "scale(1) translateY(0)";
+                            e.currentTarget.style.filter = "drop-shadow(0 4px 6px rgba(0,0,0,0.15))";
+                          }}
+                        >
+                          {item.icon}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* EcoPoints & Rewards Dropdown + Lower Mobile Home Section */}
+              {isMobile && (
+                <div style={{ width: "calc(100vw - clamp(60px, 16vw, 100px))", maxWidth: "360px", margin: "0 auto 24px auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div style={{ position: "relative", zIndex: 35 }} ref={ecoPointsDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsEcoPointsDropdownOpen(!isEcoPointsDropdownOpen)}
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "16px",
+                        border: "1px solid rgba(255,255,255,0.66)",
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.74), rgba(240,253,244,0.56))",
+                        color: "#062018",
+                        boxShadow: "0 10px 24px rgba(34,197,94,0.12), inset 0 1px 0 rgba(255,255,255,0.7)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "10px",
+                        fontSize: "13px",
+                        fontWeight: 800,
+                        fontFamily: "inherit",
+                        cursor: "pointer",
+                        backdropFilter: "blur(18px) saturate(165%)",
+                        WebkitBackdropFilter: "blur(18px) saturate(165%)",
+                      }}
+                    >
+                      <span>{ecoPointsSection === "All" ? "All Sections" : ecoPointsSection}</span>
+                      <FaChevronDown size={12} style={{ color: "#15803d", transform: isEcoPointsDropdownOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
+                    </button>
+
+                    {isEcoPointsDropdownOpen && (
+                      <div className="inner-blur-glass custom-scrollbar" style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: "8px", padding: "8px", borderRadius: "16px", background: "rgba(255,255,255,0.82)", border: "1px solid rgba(255,255,255,0.66)", boxShadow: "0 18px 36px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column", gap: "4px", maxHeight: "260px", overflowY: "auto", zIndex: 60, backdropFilter: "blur(22px) saturate(170%)", WebkitBackdropFilter: "blur(22px) saturate(170%)" }}>
+                        {["All", "Dashboard", "Rewards Marketplace", "How to Earn", "Eco Tiers", "Community Impact", "Referral Program", "Achievement Badges", "Redeem History"].map((section) => (
+                          <button
+                            key={section}
+                            type="button"
+                            onClick={() => { setEcoPointsSection(section); setIsEcoPointsDropdownOpen(false); }}
+                            style={{ padding: "10px 12px", borderRadius: "12px", border: ecoPointsSection === section ? "1px solid rgba(134,239,172,0.42)" : "1px solid transparent", background: ecoPointsSection === section ? "linear-gradient(135deg, rgba(134,239,172,0.28), rgba(125,211,252,0.28))" : "transparent", color: ecoPointsSection === section ? "#064e3b" : "#062018", fontSize: "12px", fontWeight: ecoPointsSection === section ? 800 : 650, textAlign: "left", cursor: "pointer" }}
+                          >
+                            {section === "All" ? "All Sections" : section}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={isEcoAllMobile ? "" : "inner-blur-glass"} style={isEcoAllMobile ? { display: "flex", flexDirection: "column", gap: "16px" } : { ...mobileEcoGlassCardStyle, display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Dashboard") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                          <div>
+                            <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.58)" }}>Current Balance</span>
+                            <div style={{ fontSize: "28px", fontWeight: 800, color: "#15803d", marginTop: "4px", lineHeight: 1 }}>{ecoPoints.toLocaleString()} <span style={{ fontSize: "13px", fontWeight: 800 }}>pts</span></div>
+                          </div>
+                          <div style={{ width: "46px", height: "46px", background: "linear-gradient(135deg, #16a34a, #15803d)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "21px", boxShadow: "0 8px 16px rgba(22, 163, 74, 0.28)" }}>🎁</div>
+                        </div>
+	                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+	                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+	                            <span style={{ fontSize: "12px", fontWeight: 800, color: "#15803d" }}>Eco Level: {currentTier}</span>
+	                            <span style={{ fontSize: "10.5px", fontWeight: 700, color: "rgba(0,0,0,0.58)" }}>1,250 / 2,000 pts to next tier</span>
+	                          </div>
+	                          <div style={{ width: "100%", height: "6px", background: "rgba(22, 163, 74, 0.18)", borderRadius: "999px", overflow: "hidden" }}>
+	                            <div style={{ height: "100%", width: `${progressToNextTier}%`, background: "linear-gradient(90deg, #4ade80, #16a34a)", borderRadius: "999px" }} />
+	                          </div>
+	                        </div>
+	                        <div style={{ display: "flex", gap: "8px", marginTop: "2px" }}>
+	                          <button
+	                            type="button"
+	                            onClick={() => setEcoPointsSection("Rewards Marketplace")}
+	                            style={{ flex: 1, padding: "10px", borderRadius: "999px", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", border: "1px solid rgba(255,255,255,0.35)", color: "#062018", fontSize: "12px", fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 20px rgba(34,197,94,0.2)" }}
+	                          >
+	                            Redeem Rewards
+	                          </button>
+	                          <button
+	                            type="button"
+	                            onClick={() => setEcoPointsSection("How to Earn")}
+	                            style={{ flex: 1, padding: "10px", borderRadius: "999px", background: "rgba(255,255,255,0.82)", border: "1px solid rgba(22, 163, 74, 0.3)", color: "#15803d", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}
+	                          >
+	                            Earn More Points
+	                          </button>
+	                        </div>
+                          {isEcoAllMobile && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingTop: "4px" }}>
+                              <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Eco Activity Timeline</h3>
+                              <div className="custom-scrollbar" style={{ display: "flex", flexDirection: "column", gap: "12px", position: "relative", maxHeight: "210px", overflowY: "auto", paddingRight: "6px" }}>
+                                <div style={{ position: "absolute", left: "15px", top: "15px", bottom: "15px", width: "2px", background: "linear-gradient(to bottom, rgba(34,197,94,0.4), rgba(34,197,94,0.1))", borderRadius: "999px" }} />
+                                {ecoTimelineActivities.slice(0, 5).map((activity, idx) => (
+                                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: "11px", position: "relative", zIndex: 1 }}>
+                                    <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.9)", border: `2px solid ${activity.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0, boxShadow: `0 0 10px ${activity.glow}` }}>{activity.icon}</div>
+                                    <div style={{ flex: 1, minWidth: 0, padding: "10px 11px", borderRadius: "13px", background: "rgba(255,255,255,0.58)", border: "1px solid rgba(255,255,255,0.62)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+                                        <span style={{ fontSize: "11px", fontWeight: 800, color: "#062018", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activity.title}</span>
+                                        <span style={{ fontSize: "9.5px", color: "rgba(0,0,0,0.5)", fontWeight: 650 }}>{activity.time}</span>
+                                      </div>
+                                      <span style={{ fontSize: "11.5px", fontWeight: 850, color: activity.color, flexShrink: 0 }}>{activity.points}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+	                      </div>
+	                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Rewards Marketplace") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Rewards Marketplace</h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          {[
+                            { title: "Free Delivery", points: "500 pts", icon: "🚚" },
+                            { title: "Native Seed Kit", points: "1,200 pts", icon: "🌱" },
+                            { title: "Gardening Set", points: "2,500 pts", icon: "🛠️" },
+                            { title: "AI Premium", points: "3,000 pts", icon: "🤖" },
+                          ].map((reward) => (
+                            <div key={reward.title} style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.62)", border: "1px solid rgba(255,255,255,0.62)", display: "flex", flexDirection: "column", gap: "7px" }}>
+                              <span style={{ fontSize: "24px" }}>{reward.icon}</span>
+                              <span style={{ fontSize: "11px", fontWeight: 800, color: "#062018", lineHeight: 1.15 }}>{reward.title}</span>
+                              <span style={{ fontSize: "11px", fontWeight: 800, color: "#15803d" }}>{reward.points}</span>
+                              <button type="button" onClick={() => redeemReward(reward)} style={{ marginTop: "auto", padding: "7px 8px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.42)", background: "linear-gradient(135deg, rgba(134,239,172,0.9), rgba(125,211,252,0.9))", color: "#062018", fontSize: "10px", fontWeight: 800 }}>Redeem</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "How to Earn") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>How to Earn EcoPoints</h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          {[
+                            { icon: <FaShoppingCart size={16} color="#15803d" />, label: "Buy Organic Products", points: "+50 pts" },
+                            { icon: <FaCalendarAlt size={16} color="#15803d" />, label: "Attend Workshop", points: "+75 pts" },
+                            { icon: <FaUserPlus size={16} color="#15803d" />, label: "Invite Friend", points: "+200 pts" },
+                            { icon: <FaRobot size={16} color="#15803d" />, label: "AI Diagnosis", points: "+30 pts" },
+                          ].map((item) => (
+                            <div key={item.label} style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.62)", border: "1px solid rgba(255,255,255,0.62)", display: "flex", flexDirection: "column", gap: "7px" }}>
+                              {item.icon}
+                              <span style={{ fontSize: "11px", fontWeight: 800, color: "#062018", lineHeight: 1.15 }}>{item.label}</span>
+                              <span style={{ fontSize: "11px", fontWeight: 850, color: "#16a34a" }}>{item.points}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Eco Tiers") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Eco Tier Levels</h3>
+                        {[
+                          { title: "Seedling", points: "0 - 999 pts" },
+                          { title: "Green Grower", points: "1,000 - 4,999 pts", active: true },
+                          { title: "Eco Guardian", points: "5,000 - 9,999 pts" },
+                        ].map((tier) => (
+                          <div key={tier.title} style={{ padding: "11px 12px", borderRadius: "14px", background: tier.active ? "linear-gradient(135deg, rgba(134,239,172,0.24), rgba(125,211,252,0.2))" : "rgba(255,255,255,0.56)", border: tier.active ? "1px solid rgba(22,163,74,0.3)" : "1px solid rgba(255,255,255,0.58)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                            <span style={{ fontSize: "12px", fontWeight: 850, color: "#062018" }}>{tier.title}</span>
+                            <span style={{ fontSize: "10.5px", fontWeight: 750, color: tier.active ? "#15803d" : "rgba(0,0,0,0.55)" }}>{tier.points}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Community Impact") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Community Impact</h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                          {[
+                            { label: "Trees Planted", value: "12", icon: "🌲" },
+                            { label: "Farmers Supported", value: "3", icon: "🧑‍🌾" },
+                            { label: "Seeds Preserved", value: "250", icon: "🌾" },
+                            { label: "CO2 Reduced", value: "45kg", icon: "☁️" },
+                          ].map((stat) => (
+                            <div key={stat.label} style={{ padding: "12px", borderRadius: "14px", background: "rgba(255,255,255,0.58)", border: "1px solid rgba(255,255,255,0.6)", textAlign: "center", display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <span style={{ fontSize: "20px" }}>{stat.icon}</span>
+                              <span style={{ fontSize: "17px", fontWeight: 850, color: "#15803d", lineHeight: 1 }}>{stat.value}</span>
+                              <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(0,0,0,0.58)" }}>{stat.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Referral Program") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px", textAlign: "center" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Referral Program</h3>
+                        <p style={{ margin: 0, fontSize: "11px", fontWeight: 650, color: "rgba(0,0,0,0.62)", lineHeight: 1.35 }}>Invite friends and earn 500 EcoPoints when they join EcoEquity.</p>
+                        <div style={{ padding: "10px 12px", borderRadius: "14px", border: "1px dashed #15803d", background: "rgba(22,163,74,0.08)", color: "#15803d", fontSize: "14px", fontWeight: 850, letterSpacing: "1px" }}>ECO-GROW-26</div>
+                        <button type="button" onClick={copyReferralCode} style={{ padding: "10px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.42)", background: "rgba(255,255,255,0.82)", color: "#064e3b", fontSize: "12px", fontWeight: 850 }}>{copiedReferral ? "Copied!" : "Copy Link"}</button>
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Achievement Badges") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Achievement Badges</h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+                          {badges.map((badge) => (
+                            <div key={badge.name} style={{ padding: "12px", borderRadius: "14px", background: badge.earned ? "rgba(255,255,255,0.68)" : "rgba(255,255,255,0.34)", border: badge.earned ? "1px solid rgba(22,163,74,0.24)" : "1px dashed rgba(0,0,0,0.12)", opacity: badge.earned ? 1 : 0.62, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", textAlign: "center" }}>
+                              <span style={{ fontSize: "25px", filter: badge.earned ? "none" : "grayscale(100%)" }}>{badge.icon}</span>
+                              <span style={{ fontSize: "10.5px", fontWeight: 800, color: badge.earned ? "#15803d" : "rgba(0,0,0,0.52)" }}>{badge.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(ecoPointsSection === "All" || ecoPointsSection === "Redeem History") && (
+                      <div className={isEcoAllMobile ? "inner-blur-glass" : undefined} style={{ ...(isEcoAllMobile ? mobileEcoGlassCardStyle : {}), display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Redeem History</h3>
+                        {(redeemHistory.length ? redeemHistory : [{ reward: "Free Delivery Voucher", points: "-500", date: "May 20, 2026", status: "Active" }, { reward: "Native Seed Kit", points: "-1,200", date: "Apr 15, 2026", status: "Shipped" }]).slice(0, 4).map((item, idx) => (
+                          <div key={`${item.reward}-${idx}`} style={{ padding: "11px 12px", borderRadius: "14px", background: "rgba(255,255,255,0.58)", border: "1px solid rgba(255,255,255,0.58)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+                              <span style={{ fontSize: "11.5px", fontWeight: 850, color: "#062018", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.reward}</span>
+                              <span style={{ fontSize: "10px", fontWeight: 650, color: "rgba(0,0,0,0.52)" }}>{item.date}</span>
+                            </div>
+                            <span style={{ fontSize: "11px", fontWeight: 850, color: "#e11d48", flexShrink: 0 }}>{item.points} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                  </div>
+                  {ecoPointsSection === "Dashboard" && (
+                    <div className="inner-blur-glass" style={{ padding: "18px", borderRadius: "18px", background: "linear-gradient(150deg, rgba(255,255,255,0.76), rgba(255,255,255,0.42))", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "0 8px 24px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 850, color: "#062018" }}>Eco Activity Timeline</h3>
+                      <div className="custom-scrollbar" style={{ display: "flex", flexDirection: "column", gap: "12px", position: "relative", maxHeight: "210px", overflowY: "auto", paddingRight: "6px" }}>
+                        <div style={{ position: "absolute", left: "15px", top: "15px", bottom: "15px", width: "2px", background: "linear-gradient(to bottom, rgba(34,197,94,0.4), rgba(34,197,94,0.1))", borderRadius: "999px" }} />
+                        {ecoTimelineActivities.slice(0, 5).map((activity, idx) => (
+                          <div key={idx} style={{ display: "flex", alignItems: "center", gap: "11px", position: "relative", zIndex: 1 }}>
+                            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.9)", border: `2px solid ${activity.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", flexShrink: 0, boxShadow: `0 0 10px ${activity.glow}` }}>{activity.icon}</div>
+                            <div style={{ flex: 1, minWidth: 0, padding: "10px 11px", borderRadius: "13px", background: "rgba(255,255,255,0.58)", border: "1px solid rgba(255,255,255,0.62)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+                                <span style={{ fontSize: "11px", fontWeight: 800, color: "#062018", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activity.title}</span>
+                                <span style={{ fontSize: "9.5px", color: "rgba(0,0,0,0.5)", fontWeight: 650 }}>{activity.time}</span>
+                              </div>
+                              <span style={{ fontSize: "11.5px", fontWeight: 850, color: activity.color, flexShrink: 0 }}>{activity.points}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Badge */}
+              {!isMobile && (
+                <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
+                  <span style={styles.badgeDot} />
+                  <span style={styles.glassContentLayer}>Agricultural Innovation · Philippines</span>
+                </div>
+              )}
+
+              {!isMobile && (
+                <h1 style={styles.title}>
                   <>
                     Grow Food.{" "}
                     <span style={styles.titleAccent}>Build Community.</span>
                     {"\n"}Earn Sustainably.
                   </>
-                )}
-              </h1>
-              <div style={{ ...styles.titleUnderline, ...(isMobile ? styles.titleUnderlineMobile : {}) }}></div> {/* The new small, centered green line */}
-              <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>
-                EcoEquity is a digital-first, high-engagement platform designed to boost
-                agricultural self-sufficiency in the Philippines — starting at the household
-                and community level.
-              </p>
-              <div style={{ ...styles.ctaRow, ...(isMobile ? styles.ctaRowMobile : {}) }}>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.primaryBtn,
-                    ...(isMobile ? styles.responsiveBtnMobile : {}), // Apply responsive styles if mobile
-                    ...(btnHovered ? styles.primaryBtnHov : {}), // Apply hover styles if button is hovered
-                  }}
-                  onClick={() => handleNavChange("Contact")}
-                  onMouseEnter={() => setBtnHovered(true)}
-                  onMouseLeave={() => setBtnHovered(false)}
-                >
-                  <span aria-hidden="true" style={styles.primaryInnerBlur} />
-                  <span style={styles.glassContentLayer}>Get in Touch</span>
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.glassBtn,
-                    ...(isMobile ? styles.responsiveBtnMobile : {}),
-                    ...(ghostHovered ? styles.glassBtnHov : {}),
-                  }}
-                  onClick={() => handleNavChange("Learn More")}
-                  onMouseEnter={() => setGhostHovered(true)}
-                  onMouseLeave={() => setGhostHovered(false)}
-                >
-                  <span aria-hidden="true" style={styles.glassInnerBlur} />
-                  <span style={styles.glassContentLayer}>Learn More</span>
-                </button>
-              </div>
-              <div style={{ ...styles.cardRow, ...(isMobile ? styles.cardRowMobile : {}) }}>
-                {[
-                  { icons: [<Leaf key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Sprout key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Sun key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "Organic Edibles", text: "Local produce, herbs, organic kits, floriculture, and localized native seeds." },
-                  { icons: [<Stethoscope key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Activity key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <HeartPulse key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "AI Plant Doctor", text: "24/7 localized care guides tailored to Philippine climate and native crop varieties." },
-                  { icons: [<Users key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Globe key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <MessageCircle key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "Community Hub", text: "Essential digital tools and localized data supporting both urban and traditional farmers." },
-                ].map((c) => (
-                  <div
-                    key={c.heading}
+                </h1>
+              )}
+              {!isMobile && <div style={styles.titleUnderline}></div>}
+              {!isMobile && (
+                <p style={styles.body}>
+                  EcoEquity is a digital-first, high-engagement platform designed to boost
+                  agricultural self-sufficiency in the Philippines — starting at the household
+                  and community level.
+                </p>
+              )}
+              {!isMobile && (
+                <div style={styles.ctaRow}>
+                  <button
+                    type="button"
                     style={{
-                      ...styles.card,
-                      ...(isMobile ? styles.cardMobile : {}),
-                      ...(hoveredCard === c.heading ? styles.cardHov : {}),
+                      ...styles.primaryBtn,
+                      ...(btnHovered ? styles.primaryBtnHov : {}),
                     }}
-                    onMouseEnter={() => setHoveredCard(c.heading)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  > 
-                    <span aria-hidden="true" style={styles.cardInnerBlur} />
-                    <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap", width: "100%", justifyContent: "center" }}>
-                      {c.icons.map((icon, idx) => (
-                        <div key={idx} style={styles.featureIconWrap}>{icon}</div>
-                      ))}
+                    onClick={() => handleNavChange("Contact")}
+                    onMouseEnter={() => setBtnHovered(true)}
+                    onMouseLeave={() => setBtnHovered(false)}
+                  >
+                    <span aria-hidden="true" style={styles.primaryInnerBlur} />
+                    <span style={styles.glassContentLayer}>Get in Touch</span>
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.glassBtn,
+                      ...(ghostHovered ? styles.glassBtnHov : {}),
+                    }}
+                    onClick={() => handleNavChange("Learn More")}
+                    onMouseEnter={() => setGhostHovered(true)}
+                    onMouseLeave={() => setGhostHovered(false)}
+                  >
+                    <span aria-hidden="true" style={styles.glassInnerBlur} />
+                    <span style={styles.glassContentLayer}>Learn More</span>
+                  </button>
+                </div>
+              )}
+              {!isMobile && (
+                <div style={styles.cardRow}>
+                  {[
+                    { icons: [<Leaf key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Sprout key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Sun key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "Organic Edibles", text: "Local produce, herbs, organic kits, floriculture, and localized native seeds." },
+                    { icons: [<Stethoscope key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Activity key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <HeartPulse key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "AI Plant Doctor", text: "24/7 localized care guides tailored to Philippine climate and native crop varieties." },
+                    { icons: [<Users key={1} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <Globe key={2} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, <MessageCircle key={3} size={20} color="url(#appIconGradient)" strokeWidth={2.5} />], heading: "Community Hub", text: "Essential digital tools and localized data supporting both urban and traditional farmers." },
+                  ].map((c) => (
+                    <div
+                      key={c.heading}
+                      style={{
+                        ...styles.card,
+                        ...(hoveredCard === c.heading ? styles.cardHov : {}),
+                      }}
+                      onMouseEnter={() => setHoveredCard(c.heading)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                    > 
+                      <span aria-hidden="true" style={styles.cardInnerBlur} />
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap", width: "100%", justifyContent: "center" }}>
+                        {c.icons.map((icon, idx) => (
+                          <div key={idx} style={styles.featureIconWrap}>{icon}</div>
+                        ))}
+                      </div>
+                      {c.heading && <h3 style={{ ...styles.cardContentLayer, ...styles.cardHeading }}>{c.heading}</h3>}
+                      {c.text && <p style={{ ...styles.cardContentLayer, ...styles.cardText }}>{c.text}</p>}
                     </div>
-                    {c.heading && <h3 style={{ ...styles.cardContentLayer, ...styles.cardHeading, ...(isMobile ? styles.cardHeadingMobile : {}) }}>{c.heading}</h3>}
-                    {c.text && <p style={{ ...styles.cardContentLayer, ...styles.cardText, ...(isMobile ? styles.cardTextMobile : {}) }}>{c.text}</p>}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Horizontal Glass Panel with new stats */}
-              <div
-                style={{
-                  ...styles.statsStrip,
-                  marginTop: '20px', // Reduced spacing
-                  ...(isMobile ? styles.statsStripMobile : {}),
-                  ...(statsStripHovered ? styles.statsStripHov : {}) }}
-                onMouseEnter={() => setStatsStripHovered(true)}
-                onMouseLeave={() => setStatsStripHovered(false)}
-              >
-                <span aria-hidden="true" style={styles.glassInnerBlur} />
-                {[
-                  { value: "98%", label: "Company Growth", icon: <TrendingUp color="url(#appIconGradient)" strokeWidth={2.5} /> },
-                  { value: "99+", label: "Partners", icon: <Handshake color="url(#appIconGradient)" strokeWidth={2.5} /> },
-                  { value: "1000+", label: "Customers", icon: <Users color="url(#appIconGradient)" strokeWidth={2.5} /> },
-                ].map((s, i, arr) => (
-                  <div
-                    key={s.label}
-                    style={{
-                      ...styles.statCell, // Apply base stat cell styles
-                      ...(i < arr.length - 1 ? (isMobile ? styles.statCellDividerMobile : styles.statCellDivider) : {}), // Apply mobile divider style
-                    }}
-                  >
-                    <div style={styles.featureIconWrap}>
-                      {React.cloneElement(s.icon, { size: isMobile ? 18 : 20 })}
+              {!isMobile && (
+                <div
+                  style={{
+                    ...styles.statsStrip,
+                    marginTop: '20px',
+                    ...(statsStripHovered ? styles.statsStripHov : {}) }}
+                  onMouseEnter={() => setStatsStripHovered(true)}
+                  onMouseLeave={() => setStatsStripHovered(false)}
+                >
+                  <span aria-hidden="true" style={styles.glassInnerBlur} />
+                  {[
+                    { value: "98%", label: "Company Growth", icon: <TrendingUp color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                    { value: "99+", label: "Partners", icon: <Handshake color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                    { value: "1000+", label: "Customers", icon: <Users color="url(#appIconGradient)" strokeWidth={2.5} /> },
+                  ].map((s, i, arr) => (
+                    <div
+                      key={s.label}
+                      style={{
+                        ...styles.statCell,
+                        ...(i < arr.length - 1 ? styles.statCellDivider : {}),
+                      }}
+                    >
+                      <div style={styles.featureIconWrap}>
+                        {React.cloneElement(s.icon, { size: 20 })}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                        <span style={styles.statVal}>{s.value}</span>
+                        <span style={styles.statLbl}>{s.label}</span>
+                      </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                      <span style={styles.statVal}>{s.value}</span>
-                      <span style={styles.statLbl}>{s.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
             
             {/* Right Side Rectangle Glass Card - Growth Charts */}
@@ -1854,7 +2414,7 @@ function App() {
           </div>
         )}
         {/* Chat with AI Button */}
-        {activeNav === "Home" && (
+        {activeNav === "Home" && !isMobile && (
           <div style={isMobile ? styles.chatWithAiBtnWrapMobile : styles.chatWithAiBtnWrap}>
             <div className="chat-ai-glow" />
             <button
@@ -1884,7 +2444,7 @@ function App() {
               ...styles.pageContent, // Fixed: Removed overflowY: "hidden" override to allow scrolling on all pages
             }}
           >
-            {activeNav === "About Us" && <AboutUs />}
+            {activeNav === "About Us" && !isMobile && <AboutUs />}
             {activeNav === "Product & Services" && <ProductServices setActiveNav={setActiveNav} />}
             {activeNav === "ProductsPage" && <ProductsPage setActiveNav={setActiveNav} setCartItems={setCartItems} products={products} />}
 {activeNav === "ServicesPage" && <ServicesPage setActiveNav={setActiveNav} showAIChat={showAIChat} setShowAIChat={setShowAIChat} />}
@@ -1896,7 +2456,7 @@ function App() {
             {activeNav === "Target Market Explore" && <TargetMarketExplore />}
             {activeNav === "Sustainability App Market" && <SustainabilityAppMarket />}
             {activeNav === "Benefits of the Project" && <BenefitsOfTheProject />}
-            {activeNav === "Seasonal Harvest" && <SeasonalHarvestPage setActiveNav={setActiveNav} onNotify={handleNotify} harvests={harvests} />}
+            {activeNav === "Seasonal Harvest" && !isMobile && <SeasonalHarvestPage setActiveNav={setActiveNav} onNotify={handleNotify} harvests={harvests} />}
             {activeNav === "Shop All Products" && (
               <ShopAllProducts 
                 setActiveNav={setActiveNav} 
@@ -1926,29 +2486,29 @@ function App() {
             {activeNav === "CheckoutPage" && <CheckoutPage setActiveNav={setActiveNav} cartItems={cartItems} setCartItems={setCartItems} addEcoPoints={addEcoPoints} setOrders={setOrders} onTrackOrder={handleTrackOrder} products={products} setProducts={setProducts} promoCodes={promoCodes} />}
 
             {activeNav === "Login" && (
-              <div style={{ ...styles.hero, flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", gap: "clamp(24px, 4vw, 60px)", maxWidth: "1000px", textAlign: "left", ...(isMobile ? styles.heroMobile : {}), marginTop: isMobile ? "clamp(15px, 3dvh, 30px)" : "clamp(20px, 5vh, 50px)" }}>
+              <div style={{ ...styles.hero, flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: isMobile ? "center" : "space-between", gap: isMobile ? "22px" : "clamp(24px, 4vw, 60px)", maxWidth: isMobile ? (mobileAuthView === "landing" ? "430px" : "440px") : "1000px", textAlign: isMobile ? "center" : "left", ...(isMobile ? styles.heroMobile : {}), marginTop: isMobile ? "clamp(10px, 2dvh, 22px)" : "clamp(20px, 5vh, 50px)" }}>
                 
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <div style={{ flex: isMobile ? "none" : 1, display: isMobile && mobileAuthView === "form" ? "none" : "flex", flexDirection: "column", alignItems: isMobile ? "center" : "flex-start", width: "100%", textAlign: isMobile ? "center" : "left" }}>
                   <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
                     <span style={styles.badgeDot} />
                     <span style={styles.glassContentLayer}>AGRICULTURAL INNOVATION • PHILIPPINES</span>
                   </div>
 
-                  <h1 style={{ ...styles.title, fontSize: "clamp(20px, 2.8vw, 32px)", textAlign: "left", ...(isMobile ? styles.titleMobile : {}) }}>
+                  <h1 style={{ ...styles.title, fontSize: "clamp(20px, 2.8vw, 32px)", textAlign: isMobile ? "center" : "left", ...(isMobile ? styles.titleMobile : {}) }}>
                     Welcome to <span style={styles.titleAccent}>EcoEquity!</span>
                   </h1>
-                  <div style={{ ...styles.titleUnderline, marginLeft: 0, marginBottom: "20px", ...(isMobile ? { ...styles.titleUnderlineMobile, marginLeft: 0 } : {}) }}></div>
+                  <div style={{ ...styles.titleUnderline, marginLeft: isMobile ? "auto" : 0, marginRight: isMobile ? "auto" : 0, marginBottom: "20px", ...(isMobile ? { ...styles.titleUnderlineMobile, marginLeft: "auto" } : {}) }}></div>
                   
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginBottom: "28px", maxWidth: "420px" }}>
-                    <p style={{ ...styles.body, fontSize: "14px", lineHeight: "1.5", color: "rgba(0,0,0,0.75)", margin: 0, textAlign: "left", ...(isMobile ? { ...styles.bodyMobile, fontSize: "13px" } : {}) }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: isMobile ? "center" : "flex-start", gap: "4px", marginBottom: "28px", maxWidth: "420px" }}>
+                    <p style={{ ...styles.body, fontSize: "14px", lineHeight: "1.5", color: "rgba(0,0,0,0.75)", margin: 0, textAlign: isMobile ? "center" : "left", ...(isMobile ? { ...styles.bodyMobile, fontSize: "13px" } : {}) }}>
                       EcoEquity is a digital-first, high-engagement platform.
                     </p>
-                    <p style={{ ...styles.body, fontSize: "14px", lineHeight: "1.5", color: "rgba(0,0,0,0.75)", margin: 0, textAlign: "left", ...(isMobile ? { ...styles.bodyMobile, fontSize: "13px" } : {}) }}>
+                    <p style={{ ...styles.body, fontSize: "14px", lineHeight: "1.5", color: "rgba(0,0,0,0.75)", margin: 0, textAlign: isMobile ? "center" : "left", ...(isMobile ? { ...styles.bodyMobile, fontSize: "13px" } : {}) }}>
                       Designed to boost agricultural self-sufficiency in the Philippines — starting at the household and community level.
                     </p>
                   </div>
                   
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", maxWidth: "340px", marginTop: "4px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%", maxWidth: isMobile ? "360px" : "340px", marginTop: "4px" }}>
                     {[
                       { icon: <Leaf size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, heading: "Organic Edibles", text: "Organic Edibles: Local produce, herbs, organic kits. Floriculture, localized seeds." },
                       { icon: <Stethoscope size={20} color="url(#appIconGradient)" strokeWidth={2.5} />, heading: "AI Plant Doctor", text: "24/7 AI Plant Doctor, localized care guides tailored to Philippine climate and native crops." },
@@ -1982,9 +2542,29 @@ function App() {
                       </div>
                     ))}
                   </div>
+                  {isMobile && mobileAuthView === "landing" && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", width: "100%", maxWidth: "360px", marginTop: "22px" }}>
+                      <button
+                        type="button"
+                        onClick={() => openMobileAuthForm("Login")}
+                        style={{ ...styles.primaryBtn, width: "100%", padding: "13px 10px", fontSize: "14px" }}
+                      >
+                        <span aria-hidden="true" style={styles.primaryInnerBlur} />
+                        <span style={styles.glassContentLayer}>Login</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openMobileAuthForm("Sign Up")}
+                        style={{ ...styles.glassBtn, width: "100%", padding: "13px 10px", fontSize: "14px", fontWeight: 800, color: "#15803d" }}
+                      >
+                        <span aria-hidden="true" style={styles.glassInnerBlur} />
+                        <span style={styles.glassContentLayer}>Register</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <div className={`inner-blur-glass glow-card animate-cardPulseGlow ${formErrorShake ? 'animate-shakeError' : ''}`} style={{ flex: 1, maxWidth: "440px", width: "100%", background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))", border: "1px solid rgba(0,0,0,0.05)", borderRadius: "24px", padding: "40px 32px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)" }}>
+                <div className={`inner-blur-glass glow-card animate-cardPulseGlow ${formErrorShake ? 'animate-shakeError' : ''}`} style={{ flex: isMobile ? "none" : 1, maxWidth: "440px", width: "100%", background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))", border: "1px solid rgba(0,0,0,0.05)", borderRadius: "24px", padding: isMobile ? "30px 22px" : "40px 32px", display: isMobile && mobileAuthView === "landing" ? "none" : "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)" }}>
                   <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -2114,7 +2694,7 @@ function App() {
                       <span style={{ color: "rgba(0,0,0,0.7)", fontWeight: 500 }}>Don't have an account?</span>
                       <button
                         type="button"
-                        onClick={() => handleNavChange("Sign Up")}
+                        onClick={() => isMobile ? openMobileAuthForm("Sign Up") : handleNavChange("Sign Up")}
                         style={{ background: "transparent", border: "none", color: "#15803d", fontWeight: 600, cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "12px", transition: "color 0.2s ease" }}
                         onMouseEnter={(e) => { e.target.style.color = "#16a34a"; }}
                         onMouseLeave={(e) => { e.target.style.color = "#15803d"; }}
@@ -2128,9 +2708,9 @@ function App() {
             )}
 
             {activeNav === "Sign Up" && (
-              <div style={{ ...styles.hero, flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: "space-between", gap: "clamp(24px, 4vw, 60px)", maxWidth: "1000px", textAlign: "left", ...(isMobile ? styles.heroMobile : {}), marginTop: isMobile ? "clamp(15px, 3dvh, 30px)" : "clamp(20px, 5vh, 50px)" }}>
+              <div style={{ ...styles.hero, flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: isMobile ? "center" : "space-between", gap: isMobile ? "22px" : "clamp(24px, 4vw, 60px)", maxWidth: isMobile ? "440px" : "1000px", textAlign: isMobile ? "center" : "left", ...(isMobile ? styles.heroMobile : {}), marginTop: isMobile ? "clamp(10px, 2dvh, 22px)" : "clamp(20px, 5vh, 50px)" }}>
                 
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <div style={{ flex: 1, display: isMobile ? "none" : "flex", flexDirection: "column", alignItems: "flex-start" }}>
                   <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
                     <span style={styles.badgeDot} />
                     <span style={styles.glassContentLayer}>AGRICULTURAL INNOVATION • PHILIPPINES</span>
@@ -2186,7 +2766,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className={`inner-blur-glass glow-card animate-cardPulseGlow ${formErrorShake ? 'animate-shakeError' : ''}`} style={{ flex: 1, maxWidth: "440px", width: "100%", background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))", border: "1px solid rgba(0,0,0,0.05)", borderRadius: "24px", padding: "40px 32px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)" }}>
+                <div className={`inner-blur-glass glow-card animate-cardPulseGlow ${formErrorShake ? 'animate-shakeError' : ''}`} style={{ flex: isMobile ? "none" : 1, maxWidth: "440px", width: "100%", background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))", border: "1px solid rgba(0,0,0,0.05)", borderRadius: "24px", padding: isMobile ? "30px 22px" : "40px 32px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)" }}>
                   <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -2282,7 +2862,7 @@ function App() {
                       <span style={{ color: "rgba(0,0,0,0.7)", fontWeight: 500 }}>Already have an account?</span>
                       <button
                         type="button"
-                        onClick={() => handleNavChange("Login")}
+                        onClick={() => isMobile ? openMobileAuthForm("Login") : handleNavChange("Login")}
                         style={{ background: "transparent", border: "none", color: "#15803d", fontWeight: 600, cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: "12px", transition: "color 0.2s ease" }}
                         onMouseEnter={(e) => { e.target.style.color = "#16a34a"; }}
                         onMouseLeave={(e) => { e.target.style.color = "#15803d"; }}
@@ -2310,30 +2890,32 @@ function App() {
 
               {/* Sidebar */}
               <div style={{ width: isMobile ? "100%" : "320px", background: "rgba(22, 163, 74, 0.05)", borderRight: isMobile ? "none" : "1px solid rgba(0,0,0,0.05)", borderBottom: isMobile ? "1px solid rgba(0,0,0,0.05)" : "none", padding: isMobile ? "24px" : "40px 32px", display: "flex", flexDirection: "column", gap: "24px", flexShrink: 0, overflowY: isMobile ? "visible" : "auto" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                  <div 
-                    style={{ position: "relative", cursor: "pointer", flexShrink: 0 }} 
-                    onClick={() => document.getElementById('profilePicInput').click()}
-                  >
-                    <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.1)", display: "flex", alignItems: "center", justifyItems: "center", border: "2px solid #15803d", overflow: "hidden" }}>
-                      {profilePic ? (
-                        <img src={profilePic} alt="User Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      ) : (
-                        <span style={{ fontSize: "24px", fontWeight: 800, color: "#15803d", margin: "auto" }}>
-                          {loggedInUser ? loggedInUser.charAt(0).toUpperCase() : "U"}
-                        </span>
-                      )}
+                {!isMobile && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    <div 
+                      style={{ position: "relative", cursor: "pointer", flexShrink: 0 }} 
+                      onClick={() => document.getElementById('profilePicInput').click()}
+                    >
+                      <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.1)", display: "flex", alignItems: "center", justifyItems: "center", border: "2px solid #15803d", overflow: "hidden" }}>
+                        {profilePic ? (
+                          <img src={profilePic} alt="User Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <span style={{ fontSize: "24px", fontWeight: 800, color: "#15803d", margin: "auto" }}>
+                            {loggedInUser ? loggedInUser.charAt(0).toUpperCase() : "U"}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ position: "absolute", bottom: 0, right: 0, background: "#15803d", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                      </div>
+                      <input type="file" id="profilePicInput" accept="image/*" style={{ display: "none" }} onChange={(e) => { const file = e.target.files[0]; if (file) setProfilePic(URL.createObjectURL(file)); }} />
                     </div>
-                    <div style={{ position: "absolute", bottom: 0, right: 0, background: "#15803d", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    <div style={{ overflow: "hidden" }}>
+                      <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#000", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{loggedInUser || "User"}</h3>
+                      <p style={{ margin: 0, fontSize: "13px", color: "rgba(0,0,0,0.6)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{email || "hello@verdeversity.com"}</p>
                     </div>
-                    <input type="file" id="profilePicInput" accept="image/*" style={{ display: "none" }} onChange={(e) => { const file = e.target.files[0]; if (file) setProfilePic(URL.createObjectURL(file)); }} />
                   </div>
-                  <div style={{ overflow: "hidden" }}>
-                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#000", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{loggedInUser || "User"}</h3>
-                    <p style={{ margin: 0, fontSize: "13px", color: "rgba(0,0,0,0.6)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{email || "hello@verdeversity.com"}</p>
-                  </div>
-                </div>
+                )}
 
                 <div style={{ display: "flex", flexDirection: isMobile ? "row" : "column", gap: "8px", overflowX: isMobile ? "auto" : "visible" }}>
                   <button 
@@ -2352,22 +2934,26 @@ function App() {
                   >
                     My Certificate
                   </button>
-                  <button 
-                    onClick={() => setSettingsTab("earnHistory")}
-                    onMouseEnter={() => setHoveredSettingsTab("earnHistory")}
-                    onMouseLeave={() => setHoveredSettingsTab(null)}
-                    style={{ padding: "12px 16px", borderRadius: "12px", border: settingsTab === "earnHistory" ? "1px solid rgba(134,239,172,0.4)" : "1px solid transparent", background: settingsTab === "earnHistory" ? "linear-gradient(135deg, rgba(134,239,172,0.25), rgba(125,211,252,0.25))" : hoveredSettingsTab === "earnHistory" ? "linear-gradient(135deg, rgba(134,239,172,0.12), rgba(125,211,252,0.12))" : "transparent", color: settingsTab === "earnHistory" || hoveredSettingsTab === "earnHistory" ? "#064e3b" : "rgba(0,0,0,0.7)", fontSize: "14px", fontWeight: settingsTab === "earnHistory" ? 700 : 600, textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", whiteSpace: "nowrap", boxShadow: settingsTab === "earnHistory" ? "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)" : hoveredSettingsTab === "earnHistory" ? "0 4px 12px rgba(34,197,94,0.08)" : "none", backdropFilter: settingsTab === "earnHistory" ? "blur(12px) saturate(180%)" : "none", WebkitBackdropFilter: settingsTab === "earnHistory" ? "blur(12px) saturate(180%)" : "none" }}
-                  >
-                    Earn History
-                  </button>
-                  <button 
-                    onClick={() => setSettingsTab("ecopoints")}
-                    onMouseEnter={() => setHoveredSettingsTab("ecopoints")}
-                    onMouseLeave={() => setHoveredSettingsTab(null)}
-                    style={{ padding: "12px 16px", borderRadius: "12px", border: settingsTab === "ecopoints" ? "1px solid rgba(134,239,172,0.4)" : "1px solid transparent", background: settingsTab === "ecopoints" ? "linear-gradient(135deg, rgba(134,239,172,0.25), rgba(125,211,252,0.25))" : hoveredSettingsTab === "ecopoints" ? "linear-gradient(135deg, rgba(134,239,172,0.12), rgba(125,211,252,0.12))" : "transparent", color: settingsTab === "ecopoints" || hoveredSettingsTab === "ecopoints" ? "#064e3b" : "rgba(0,0,0,0.7)", fontSize: "14px", fontWeight: settingsTab === "ecopoints" ? 700 : 600, textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", whiteSpace: "nowrap", boxShadow: settingsTab === "ecopoints" ? "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)" : hoveredSettingsTab === "ecopoints" ? "0 4px 12px rgba(34,197,94,0.08)" : "none", backdropFilter: settingsTab === "ecopoints" ? "blur(12px) saturate(180%)" : "none", WebkitBackdropFilter: settingsTab === "ecopoints" ? "blur(12px) saturate(180%)" : "none" }}
-                  >
-                    EcoPoints & Rewards
-                  </button>
+	                  {!isMobile && (
+	                    <>
+	                      <button 
+	                        onClick={() => setSettingsTab("earnHistory")}
+	                        onMouseEnter={() => setHoveredSettingsTab("earnHistory")}
+	                        onMouseLeave={() => setHoveredSettingsTab(null)}
+	                        style={{ padding: "12px 16px", borderRadius: "12px", border: settingsTab === "earnHistory" ? "1px solid rgba(134,239,172,0.4)" : "1px solid transparent", background: settingsTab === "earnHistory" ? "linear-gradient(135deg, rgba(134,239,172,0.25), rgba(125,211,252,0.25))" : hoveredSettingsTab === "earnHistory" ? "linear-gradient(135deg, rgba(134,239,172,0.12), rgba(125,211,252,0.12))" : "transparent", color: settingsTab === "earnHistory" || hoveredSettingsTab === "earnHistory" ? "#064e3b" : "rgba(0,0,0,0.7)", fontSize: "14px", fontWeight: settingsTab === "earnHistory" ? 700 : 600, textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", whiteSpace: "nowrap", boxShadow: settingsTab === "earnHistory" ? "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)" : hoveredSettingsTab === "earnHistory" ? "0 4px 12px rgba(34,197,94,0.08)" : "none", backdropFilter: settingsTab === "earnHistory" ? "blur(12px) saturate(180%)" : "none", WebkitBackdropFilter: settingsTab === "earnHistory" ? "blur(12px) saturate(180%)" : "none" }}
+	                      >
+	                        Earn History
+	                      </button>
+	                      <button 
+	                        onClick={() => setSettingsTab("ecopoints")}
+	                        onMouseEnter={() => setHoveredSettingsTab("ecopoints")}
+	                        onMouseLeave={() => setHoveredSettingsTab(null)}
+	                        style={{ padding: "12px 16px", borderRadius: "12px", border: settingsTab === "ecopoints" ? "1px solid rgba(134,239,172,0.4)" : "1px solid transparent", background: settingsTab === "ecopoints" ? "linear-gradient(135deg, rgba(134,239,172,0.25), rgba(125,211,252,0.25))" : hoveredSettingsTab === "ecopoints" ? "linear-gradient(135deg, rgba(134,239,172,0.12), rgba(125,211,252,0.12))" : "transparent", color: settingsTab === "ecopoints" || hoveredSettingsTab === "ecopoints" ? "#064e3b" : "rgba(0,0,0,0.7)", fontSize: "14px", fontWeight: settingsTab === "ecopoints" ? 700 : 600, textAlign: "left", cursor: "pointer", transition: "all 0.3s ease", whiteSpace: "nowrap", boxShadow: settingsTab === "ecopoints" ? "0 8px 24px rgba(34,197,94,0.15), inset 0 1px 0 rgba(255,255,255,0.3)" : hoveredSettingsTab === "ecopoints" ? "0 4px 12px rgba(34,197,94,0.08)" : "none", backdropFilter: settingsTab === "ecopoints" ? "blur(12px) saturate(180%)" : "none", WebkitBackdropFilter: settingsTab === "ecopoints" ? "blur(12px) saturate(180%)" : "none" }}
+	                      >
+	                        EcoPoints & Rewards
+	                      </button>
+	                    </>
+	                  )}
                   <button 
                     onClick={() => setSettingsTab("orders")}
                     onMouseEnter={() => setHoveredSettingsTab("orders")}
@@ -2400,8 +2986,34 @@ function App() {
                 
                 {settingsTab === "profile" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px", width: "100%" }}>
-                    <div>
-                      <h2 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: 800, color: "#000" }}>My Profile</h2>
+                    {isMobile && (
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "10px", width: "100%", marginTop: "2px" }}>
+                        <div 
+                          style={{ position: "relative", cursor: "pointer", flexShrink: 0 }} 
+                          onClick={() => document.getElementById('profilePicInputMobile').click()}
+                        >
+                          <div style={{ width: "86px", height: "86px", borderRadius: "50%", background: "rgba(22, 163, 74, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #15803d", overflow: "hidden", boxShadow: "0 12px 26px rgba(22,163,74,0.16)" }}>
+                            {profilePic ? (
+                              <img src={profilePic} alt="User Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                              <span style={{ fontSize: "32px", fontWeight: 800, color: "#15803d" }}>
+                                {loggedInUser ? loggedInUser.charAt(0).toUpperCase() : "U"}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ position: "absolute", bottom: "3px", right: "3px", background: "#15803d", borderRadius: "50%", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fff" }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                          </div>
+                          <input type="file" id="profilePicInputMobile" accept="image/*" style={{ display: "none" }} onChange={(e) => { const file = e.target.files[0]; if (file) setProfilePic(URL.createObjectURL(file)); }} />
+                        </div>
+                        <div style={{ maxWidth: "100%", overflow: "hidden" }}>
+                          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 850, color: "#000", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{loggedInUser || "User"}</h3>
+                          <p style={{ margin: "3px 0 0", fontSize: "12px", color: "rgba(0,0,0,0.58)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{email || "hello@verdeversity.com"}</p>
+                        </div>
+                      </div>
+                    )}
+                    <div style={{ textAlign: isMobile ? "center" : "left" }}>
+                      <h2 style={{ margin: isMobile ? "0 0 6px" : "0 0 8px", fontSize: "24px", fontWeight: 800, color: "#000" }}>My Profile</h2>
                       <p style={{ margin: "0", fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>Update your personal information and delivery details.</p>
                     </div>
 
@@ -3436,7 +4048,7 @@ function App() {
           </div>
         ))}
 
-        {activeNav === "Learn More" && (
+        {activeNav === "Learn More" && !isMobile && (
           <button
             type="button"
             style={{
@@ -3452,6 +4064,70 @@ function App() {
             <span aria-hidden="true" style={styles.glassInnerBlur} />
             <span style={styles.glassContentLayer}>Explore more</span>
           </button>
+        )}
+
+        {/* Bottom Mobile Glass Container */}
+        {isMobile && !isAuthPage && (
+          <div style={styles.bottomGlassContainerMobile}>
+            <button onClick={() => handleNavChange("Home")} style={{ ...styles.bottomNavBtn, opacity: activeNav === "Home" ? 1 : 0.6 }}>
+              <Home size={22} color="#ffffff" />
+            </button>
+            <button onClick={() => handleNavChange("About Us")} style={{ ...styles.bottomNavBtn, opacity: activeNav === "About Us" ? 1 : 0.6 }}>
+              <Users size={22} color="#ffffff" />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+              <div style={{ position: "relative", width: "48px", height: "48px", transform: "translateY(-12px)" }}>
+                <div className="chat-ai-glow" />
+                <button onClick={() => setShowAIChat(true)} style={{ ...styles.bottomNavBtnCenter, transform: "none", position: "relative", overflow: "hidden" }}>
+                  <span className="orbit-container-mobile" />
+                  <Sparkles size={24} color="url(#appIconGradient)" style={{ position: "relative", zIndex: 1 }} />
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => handleNavChange("Seasonal Harvest")}
+              aria-label="Seasonal Harvest"
+              style={{ ...styles.bottomNavBtn, opacity: activeNav === "Seasonal Harvest" ? 1 : 0.6 }}
+            >
+              <Wheat size={23} color="#ffffff" />
+            </button>
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsProfileDropdownOpen(false);
+                setSettingsTab("profile");
+                setShowSettingsModal(true);
+              }}
+              aria-label="My Profile"
+              style={{ ...styles.bottomNavBtn, opacity: showSettingsModal && settingsTab === "profile" ? 1 : 0.6 }}
+            >
+              <CircleUserRound size={23} color="#ffffff" />
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Seasonal Harvest Modal */}
+        {activeNav === "Seasonal Harvest" && isMobile && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,253,244,0.9))", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto", display: "flex", flexDirection: "column", animation: "scaleUp 0.3s ease" }}>
+            <button onClick={() => handleNavChange("Home")} aria-label="Close Seasonal Harvest" style={{ position: "absolute", top: "16px", right: "16px", background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "50%", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div style={{ padding: "40px 0" }}>
+              <SeasonalHarvestPage setActiveNav={setActiveNav} onNotify={handleNotify} harvests={harvests} />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile About Us Modal */}
+        {activeNav === "About Us" && isMobile && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,253,244,0.9))", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto", display: "flex", flexDirection: "column", animation: "scaleUp 0.3s ease" }}>
+            <button onClick={() => handleNavChange("Home")} style={{ position: "absolute", top: "16px", right: "16px", background: "rgba(0,0,0,0.05)", border: "none", borderRadius: "50%", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div style={{ padding: "40px 0" }}>
+              <AboutUs />
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -3527,7 +4203,7 @@ const styles = {
     minWidth: 0,
     margin: "clamp(4px, 1dvh, 8px) auto 0",
     borderRadius: "clamp(18px, 5vw, 24px)",
-    padding: "clamp(7px, 1.3dvh, 11px) clamp(10px, 3.5vw, 16px) clamp(10px, 1.8dvh, 14px)",
+    padding: "clamp(7px, 1.3dvh, 11px) clamp(10px, 3.5vw, 16px) 100px",
     overflowY: "auto",
     overflowX: "hidden",
   },
@@ -3583,7 +4259,7 @@ const styles = {
     textShadow: "0 2px 10px rgba(0,0,0,0.1)",
   },
   logoTextMobile: { // New mobile style for logoText
-    fontSize: "clamp(15px, 4.4vw, 18px)",
+    fontSize: "clamp(12px, 3.4vw, 14px)",
     fontWeight: 700,
   },
 
@@ -3593,7 +4269,56 @@ const styles = {
     // Removed marginRight as gap in logoWrap will handle spacing
   },
   ecoLogoMobile: { // New mobile style for ecoLogo
-    height: "clamp(32px, 9vw, 40px)",
+    height: "clamp(24px, 7vw, 30px)",
+  },
+
+  mobileWelcomeCard: {
+    width: "calc(100% - 12px)",
+    minHeight: "100px",
+    margin: "8px 8px 0 4px",
+    padding: "14px 13px 14px 18px",
+    borderRadius: "18px",
+    background: "linear-gradient(-45deg, rgba(134,239,172,0.5), rgba(125,211,252,0.5), rgba(253,230,138,0.5), rgba(167,243,208,0.5))",
+    backgroundSize: "300% 300%",
+    animation: "mobileWelcomeGradient 8s ease infinite",
+    border: "1px solid rgba(255,255,255,0.42)",
+    boxShadow: "0 12px 28px rgba(34,197,94,0.14), inset 0 1px 0 rgba(255,255,255,0.45)",
+    backdropFilter: "blur(18px) saturate(165%)",
+    WebkitBackdropFilter: "blur(18px) saturate(165%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "10px",
+    boxSizing: "border-box",
+  },
+
+  mobileWelcomeText: {
+    minWidth: 0,
+    flex: 1,
+    color: "#062018",
+    fontSize: "clamp(12px, 3.5vw, 14px)",
+    fontWeight: 800,
+    lineHeight: 1.15,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+
+  mobileWelcomeAvatar: {
+    width: "150px",
+    height: "150px",
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.74)",
+    border: "1px solid rgba(255,255,255,0.7)",
+    color: "#15803d",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    overflow: "hidden",
+    fontSize: "48px",
+    fontWeight: 800,
+    boxShadow: "0 8px 24px rgba(6,32,24,0.12)",
   },
 
   hamburgerButton: {
@@ -3661,6 +4386,52 @@ const styles = {
     display: "none",
   },
 
+  bottomGlassContainerMobile: {
+    position: "fixed",
+    bottom: "clamp(16px, 3dvh, 24px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "calc(100vw - clamp(60px, 16vw, 100px))",
+    maxWidth: "360px",
+    height: "56px",
+    background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))",
+    backdropFilter: "blur(24px) saturate(180%)",
+    WebkitBackdropFilter: "blur(24px) saturate(180%)",
+    border: "1px solid rgba(255,255,255,0.6)",
+    borderRadius: "clamp(18px, 5vw, 24px)",
+    zIndex: 2000,
+    boxSizing: "border-box",
+    boxShadow: "0 18px 38px rgba(34,197,94,0.26), inset 0 1px 0 rgba(255,255,255,0.48)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 12px",
+  },
+  bottomNavBtn: {
+    background: "transparent",
+    border: "none",
+    padding: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    color: "#062018",
+    flex: 1,
+    transition: "opacity 0.2s ease"
+  },
+  bottomNavBtnCenter: {
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
+    borderRadius: "50%",
+    width: "48px",
+    height: "48px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.5)",
+    transform: "translateY(-12px)",
+  },
   navDropdownWrapMobile: {
     width: "100%",
     alignItems: "stretch",
@@ -3724,10 +4495,10 @@ const styles = {
 
   heroMobile: {
     maxWidth: "100%",
-    width: "calc(100% - clamp(38px, 11vw, 50px) - 16px)", // Accounts for dynamic mobile margin
+    width: "100%",
     minWidth: 0,
-    margin: "clamp(15px, 3dvh, 30px) 0 0 clamp(38px, 11vw, 50px)",
-    padding: "0 2px clamp(10px, 2dvh, 20px)",
+    margin: "clamp(15px, 3dvh, 30px) 0 0 0",
+    padding: "0",
     overflowX: "hidden",
   },
 

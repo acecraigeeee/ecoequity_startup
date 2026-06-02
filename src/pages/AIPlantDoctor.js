@@ -195,7 +195,7 @@ return (
           style={styles.backBtn} 
           onClick={() => {
             resetAIPlantDoctorState(); // Clear the content/state before navigating away
-            setActiveNav("ServicesPage");
+            setActiveNav(isMobile ? "Home" : "ServicesPage");
           }}
         >
           <FaArrowLeft />

@@ -61,7 +61,7 @@ const allExpertise = [...new Set(mockAdvisors.flatMap((advisor) => advisor.exper
 const consultationTypes = [
   { id: "video", name: "Video Call", duration: "3 hours", price: 1000, icon: FaVideo, description: "Face-to-face video consultation" },
   { id: "phone", name: "Phone Call", duration: "2 hours", price: 500, icon: FaPhone, description: "Quick voice consultation" },
-  { id: "chat", name: "Chat Session", duration: "1 hour", price: 250, icon: FaPaperPlane, description: "Text-based consultation" },
+  { id: "chat", name: "Unlimited Support", duration: "Unlimited chat, video, and phone call", price: 1500, icon: FaPaperPlane, description: "Unlimited chat with included video and phone access" },
   { id: "emergency", name: "Emergency", duration: "45 mins", price: 800, icon: FaExclamationTriangle, description: "Urgent assistance" },
 ];
 
@@ -323,6 +323,11 @@ const handleBookConsultation = (advisor, defaultType = null, isInstant = false) 
     return false;
   };
 
+  const formatPrice = (price) => {
+    if (price === undefined || price === null) return "";
+    return price.toLocaleString("en-PH");
+  };
+
   const handleCloseModal = () => {
     setShowConsultationModal(false);
     setSelectedAdvisor(null);
@@ -331,6 +336,12 @@ const handleBookConsultation = (advisor, defaultType = null, isInstant = false) 
 const handleConfirmBooking = () => {
     if (selectedType?.id === "chat") {
       setPaidChatAdvisors(prev => 
+        prev.includes(selectedAdvisor.id) ? prev : [...prev, selectedAdvisor.id]
+      );
+      setPaidCallAdvisors(prev => 
+        prev.includes(selectedAdvisor.id) ? prev : [...prev, selectedAdvisor.id]
+      );
+      setPaidVideoAdvisors(prev => 
         prev.includes(selectedAdvisor.id) ? prev : [...prev, selectedAdvisor.id]
       );
     } else if (selectedType?.id === "phone") {
@@ -477,8 +488,9 @@ const handleKeyDown = (e) => {
   const renderChatModal = () => {
     if (!selectedAdvisorForChat) return null;
 
-    const isCallPaid = paidCallAdvisors.includes(selectedAdvisorForChat.id);
-    const isVideoPaid = paidVideoAdvisors.includes(selectedAdvisorForChat.id);
+    const hasChatSubscription = paidChatAdvisors.includes(selectedAdvisorForChat.id);
+    const isCallPaid = hasChatSubscription || paidCallAdvisors.includes(selectedAdvisorForChat.id);
+    const isVideoPaid = hasChatSubscription || paidVideoAdvisors.includes(selectedAdvisorForChat.id);
 
     return ReactDOM.createPortal(
       <div style={chatModalStyles.overlay} onClick={handleCloseChat}>
@@ -659,7 +671,7 @@ const handleKeyDown = (e) => {
                     <type.icon style={{ fontSize: "20px", color: selectedType?.id === type.id ? "#15803d" : "#6b7280" }} />
                     <span style={modalStyles.typeName}>{type.name}</span>
                     <span style={modalStyles.typeDuration}>{type.duration}</span>
-                    <span style={modalStyles.typePrice}>₱{type.price}</span>
+                    <span style={modalStyles.typePrice}>₱{formatPrice(type.price)}</span>
                   </button>
                 ))}
               </div>
@@ -713,7 +725,7 @@ const handleKeyDown = (e) => {
                      <div style={{ fontSize: "12px", color: "rgba(0,0,0,0.6)", fontWeight: 600 }}>Duration: {selectedType?.duration}</div>
                    </div>
                    <div style={{ fontSize: "20px", fontWeight: 800, color: "#15803d" }}>
-                     ₱{selectedType?.price}
+                     ₱{formatPrice(selectedType?.price)}
                    </div>
                 </div>
               )}
@@ -1085,7 +1097,7 @@ const handleKeyDown = (e) => {
                 </div>
                 <div style={{ ...modalStyles.summaryRow, borderBottom: "none" }}>
                   <span>Total Fee</span>
-                  <span style={modalStyles.totalPrice}>₱{selectedType?.price}</span>
+                  <span style={modalStyles.totalPrice}>₱{formatPrice(selectedType?.price)}</span>
                 </div>
               </div>
               
@@ -1131,7 +1143,7 @@ return (
               ...styles.backBtn,
               ...(isHoveredBack ? styles.backBtnHov : {}),
             }}
-            onClick={() => setActiveNav && setActiveNav("ServicesPage")}
+              onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "ServicesPage")}
             onMouseEnter={() => setIsHoveredBack(true)}
             onMouseLeave={() => setIsHoveredBack(false)}
           >

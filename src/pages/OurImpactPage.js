@@ -95,7 +95,7 @@ function OurImpactPage({ setActiveNav }) {
                   ...styles.backBtn,
                   ...(isHoveredBack ? styles.backBtnHov : {}),
                 }}
-                onClick={() => setActiveNav && setActiveNav("Product & Services")}
+                onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "Product & Services")}
                 onMouseEnter={() => setIsHoveredBack(true)}
                 onMouseLeave={() => setIsHoveredBack(false)}
               > 

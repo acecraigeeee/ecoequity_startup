@@ -501,7 +501,7 @@ function ShopAllProducts({ setActiveNav, cartItems, setCartItems, savedProducts,
               ...styles.backBtn,
               ...(isHovered ? styles.backBtnHov : {}),
             }}
-            onClick={() => setActiveNav && setActiveNav("ProductsPage")}
+              onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "ProductsPage")}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           > 
@@ -666,19 +666,19 @@ function ShopAllProducts({ setActiveNav, cartItems, setCartItems, savedProducts,
               <div 
                 key={product.id} 
                 className="inner-blur-glass"
-                style={{ ...styles.productCard, ...(hoveredProduct === product.id ? styles.productCardHov : {}), cursor: "pointer" }}
+                style={{ ...styles.productCard, ...(isMobile ? styles.productCardMobile : {}), ...(hoveredProduct === product.id ? styles.productCardHov : {}), cursor: "pointer" }}
                 onMouseEnter={() => setHoveredProduct(product.id)}
                 onMouseLeave={() => setHoveredProduct(null)}
                 onClick={() => setQuickViewProduct(product)}
               >
-                <div style={styles.imageContainer}>
+                <div style={{ ...styles.imageContainer, ...(isMobile ? styles.imageContainerMobile : {}) }}>
                   <div style={styles.imagePlaceholder}>
                      {/* Replace this with actual image tag: <img src={product.image} alt={product.name} /> */}
-                     <span style={{ fontSize: "36px" }}>{product.emoji || "🌱"}</span>
+                     <span style={{ fontSize: isMobile ? "28px" : "36px" }}>{product.emoji || "🌱"}</span>
                   </div>
-                  {product.badge && <span style={styles.badgeLabel}>{product.badge}</span>}
+                  {product.badge && <span style={{ ...styles.badgeLabel, ...(isMobile ? styles.badgeLabelMobile : {}) }}>{product.badge}</span>}
                   <button 
-                    style={{ ...styles.saveBtn, ...(savedProducts.includes(product.id) ? styles.saveBtnActive : {}) }}
+                    style={{ ...styles.saveBtn, ...(isMobile ? styles.saveBtnMobile : {}), ...(savedProducts.includes(product.id) ? styles.saveBtnActive : {}) }}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!savedProducts.includes(product.id)) {
@@ -691,19 +691,19 @@ function ShopAllProducts({ setActiveNav, cartItems, setCartItems, savedProducts,
                     {savedProducts.includes(product.id) ? "♥" : "♡"}
                   </button>
                 </div>
-                <div style={styles.productInfo}>
-                  <span style={styles.productCat}>{product.category}</span>
-                  <h3 style={styles.productName}>{product.name}</h3>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "2px", marginBottom: "2px" }}>
-                     <FaStar style={{ color: "#fbbf24", fontSize: "12px" }} />
-                     <span style={{ fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.8)" }}>{product.rating ? product.rating.toFixed(1) : "0.0"}</span>
-                     <span style={{ fontSize: "11px", color: "rgba(0,0,0,0.5)", fontWeight: 600 }}>({product.reviewCount || 0} reviews)</span>
+                <div style={{ ...styles.productInfo, ...(isMobile ? styles.productInfoMobile : {}) }}>
+                  <span style={{ ...styles.productCat, ...(isMobile ? styles.productCatMobile : {}) }}>{product.category}</span>
+                  <h3 style={{ ...styles.productName, ...(isMobile ? styles.productNameMobile : {}) }}>{product.name}</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "3px", marginTop: "1px", marginBottom: "1px", minWidth: 0 }}>
+                     <FaStar style={{ color: "#fbbf24", fontSize: isMobile ? "10px" : "12px", flexShrink: 0 }} />
+                     <span style={{ fontSize: isMobile ? "10px" : "12px", fontWeight: 700, color: "rgba(0,0,0,0.8)" }}>{product.rating ? product.rating.toFixed(1) : "0.0"}</span>
+                     <span style={{ fontSize: isMobile ? "9px" : "11px", color: "rgba(0,0,0,0.5)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>({product.reviewCount || 0} reviews)</span>
                   </div>
-                  <div style={styles.productPrice}>₱{product.price.toFixed(2)}</div>
+                  <div style={{ ...styles.productPrice, ...(isMobile ? styles.productPriceMobile : {}) }}>₱{product.price.toFixed(2)}</div>
                 </div>
-                <div style={styles.actionButtons}>
+                <div style={{ ...styles.actionButtons, ...(isMobile ? styles.actionButtonsMobile : {}) }}>
                   <button 
-                    style={styles.addToCartBtn}
+                    style={{ ...styles.addToCartBtn, ...(isMobile ? styles.productActionBtnMobile : {}) }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setCartItems(prev => [...prev, product.id]);
@@ -714,7 +714,7 @@ function ShopAllProducts({ setActiveNav, cartItems, setCartItems, savedProducts,
                   >
                     Add to Cart
                   </button>
-                  <button style={styles.buyNowBtn} onClick={(e) => { e.stopPropagation(); setCartItems(prev => [...prev, product.id]); setCheckoutOpen(true); }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                  <button style={{ ...styles.buyNowBtn, ...(isMobile ? styles.productActionBtnMobile : {}) }} onClick={(e) => { e.stopPropagation(); setCartItems(prev => [...prev, product.id]); setCheckoutOpen(true); }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                     Buy Now
                   </button>
                 </div>
@@ -1742,8 +1742,8 @@ const styles = {
     gap: "20px",
   },
   productGridMobile: {
-    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-    gap: "12px",
+    gridTemplateColumns: "repeat(auto-fill, minmax(136px, 1fr))",
+    gap: "9px",
   },
   productCard: {
     background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))",
@@ -1758,6 +1758,11 @@ const styles = {
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
     transition: "transform 0.22s ease, box-shadow 0.22s ease",
   },
+  productCardMobile: {
+    padding: "9px",
+    gap: "7px",
+    borderRadius: "12px",
+  },
   productCardHov: {
     transform: "translateY(-4px)",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), 0 14px 28px rgba(0,0,0,0.08)",
@@ -1768,6 +1773,10 @@ const styles = {
     height: "160px",
     borderRadius: "10px",
     overflow: "hidden",
+  },
+  imageContainerMobile: {
+    height: "108px",
+    borderRadius: "8px",
   },
   imagePlaceholder: {
     width: "100%",
@@ -1790,6 +1799,13 @@ const styles = {
     textTransform: "uppercase",
     letterSpacing: "0.5px",
   },
+  badgeLabelMobile: {
+    top: "7px",
+    left: "7px",
+    padding: "3px 7px",
+    fontSize: "8px",
+    letterSpacing: "0.3px",
+  },
   saveBtn: {
     position: "absolute",
     top: "10px",
@@ -1808,6 +1824,13 @@ const styles = {
     transition: "all 0.2s ease",
     boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
   },
+  saveBtnMobile: {
+    top: "7px",
+    right: "7px",
+    width: "25px",
+    height: "25px",
+    fontSize: "14px",
+  },
   saveBtnActive: {
     color: "#e11d48", // red
     background: "#fff",
@@ -1817,6 +1840,9 @@ const styles = {
     flexDirection: "column",
     gap: "4px",
   },
+  productInfoMobile: {
+    gap: "2px",
+  },
   productCat: {
     fontSize: "11px",
     color: "rgba(0,0,0,0.5)",
@@ -1824,11 +1850,25 @@ const styles = {
     letterSpacing: "0.5px",
     fontWeight: 600,
   },
+  productCatMobile: {
+    fontSize: "8px",
+    letterSpacing: "0.35px",
+    lineHeight: 1.1,
+  },
   productName: {
     fontSize: "15px",
     fontWeight: 700,
     color: "#000",
     margin: 0,
+  },
+  productNameMobile: {
+    fontSize: "12px",
+    lineHeight: 1.15,
+    minHeight: "28px",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
   productPrice: {
     fontSize: "14px",
@@ -1836,10 +1876,17 @@ const styles = {
     color: "#15803d",
     marginTop: "2px",
   },
+  productPriceMobile: {
+    fontSize: "12px",
+    marginTop: "0",
+  },
   actionButtons: {
     display: "flex",
     gap: "8px",
     marginTop: "auto",
+  },
+  actionButtonsMobile: {
+    gap: "5px",
   },
   addToCartBtn: {
     flex: 1,
@@ -1864,6 +1911,14 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     boxShadow: "0 4px 12px rgba(34,197,94,0.15)",
+  },
+  productActionBtnMobile: {
+    padding: "6px 0",
+    borderRadius: "7px",
+    fontSize: "9px",
+    lineHeight: 1,
+    minHeight: "25px",
+    whiteSpace: "nowrap",
   },
   emptyState: {
     gridColumn: "1 / -1",

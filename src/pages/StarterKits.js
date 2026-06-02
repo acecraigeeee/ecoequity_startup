@@ -429,7 +429,7 @@ function StarterKits({ setActiveNav, cartItems, setCartItems, setOrders, onTrack
               ...styles.backBtn,
               ...(isHoveredBack ? styles.backBtnHov : {}),
             }}
-            onClick={() => setActiveNav && setActiveNav("ProductsPage")}
+              onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "ProductsPage")}
             onMouseEnter={() => setIsHoveredBack(true)}
             onMouseLeave={() => setIsHoveredBack(false)}
           > 

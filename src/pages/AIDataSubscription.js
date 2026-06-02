@@ -266,7 +266,7 @@ function AIDataSubscription({ setActiveNav, isAdmin = false, promoCodes }) {
               ...styles.backBtn,
               ...(isHoveredBack ? styles.backBtnHov : {}),
             }}
-            onClick={() => setActiveNav && setActiveNav("ProductsPage")}
+              onClick={() => setActiveNav && setActiveNav(isMobile ? "Home" : "ProductsPage")}
             onMouseEnter={() => setIsHoveredBack(true)}
             onMouseLeave={() => setIsHoveredBack(false)}
           > 

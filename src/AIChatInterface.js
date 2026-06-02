@@ -627,7 +627,7 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
   const isPayButtonDisabled = isProcessing || !isFormValid;
 
   return (
-    <div style={aiChatStyles.overlay}> {/* Removed onClick={onClose} to prevent closing on overlay click */}
+    <div style={{ ...aiChatStyles.overlay, ...(isMobile ? aiChatStyles.overlayMobile : {}) }}> {/* Removed onClick={onClose} to prevent closing on overlay click */}
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -636,9 +636,7 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
           // The chatContainer itself should not close the chat when clicked
           ...(isMobile ? aiChatStyles.chatContainerMobile : {}), // Apply mobile styles
           opacity: isOpen ? 1 : 0,
-          transform: isMobile
-            ? isOpen ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0.95)"
-            : isOpen ? "scale(1)" : "scale(0.95)",
+          transform: isOpen ? "scale(1)" : "scale(0.95)",
         }}
       >
         <style>
@@ -713,7 +711,7 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
           `}
         </style>
         {/* Prevent clicks inside the chat container from closing the chat */}
-        <div style={aiChatStyles.chatHeader}>
+        <div style={{ ...aiChatStyles.chatHeader, ...(isMobile ? aiChatStyles.chatHeaderMobile : {}) }}>
           <div style={aiChatStyles.headerText}>
             <span style={aiChatStyles.statusPill}>
               <span style={aiChatStyles.statusDot} />
@@ -724,7 +722,7 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
             </h3>
           </div>
           <div style={aiChatStyles.headerActions}>
-            {activePlan === 'Basic' ? (
+            {activePlan === 'Basic' && !isMobile ? (
               <button
                 type="button"
                 style={{ ...aiChatStyles.upgradeProBtn, ...(isMobile ? aiChatStyles.upgradeProBtnMobile : {}) }}
@@ -734,47 +732,64 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
               >
                 <span style={{ fontSize: isMobile ? "12px" : "14px", marginTop: "-1px" }}>✨</span> Upgrade to Pro
               </button>
-            ) : (
+            ) : !isMobile ? (
               <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: isMobile ? "6px 10px" : "8px 14px", borderRadius: "999px", background: activePlan === 'Enterprise' ? "rgba(14, 165, 233, 0.1)" : "rgba(234, 179, 8, 0.1)", color: activePlan === 'Enterprise' ? "#0284c7" : "#ca8a04", fontSize: isMobile ? "11px" : "12px", fontWeight: 800, border: activePlan === 'Enterprise' ? "1px solid rgba(14, 165, 233, 0.2)" : "1px solid rgba(234, 179, 8, 0.2)", cursor: "default", whiteSpace: "nowrap" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 {activePlan} Active
               </div>
-            )}
-            <div style={aiChatStyles.switcherStack}>
+            ) : null}
+            <div style={{ ...aiChatStyles.switcherStack, ...(isMobile ? aiChatStyles.switcherStackMobile : {}) }}>
               <button onClick={handleToggleBot} style={{ ...aiChatStyles.toggleBotButton, ...(isMobile ? aiChatStyles.toggleBotButtonMobile : {}) }}>
                 {currentBot === 'general' ? 'Plant Doctor' : 'General AI'}
               </button>
-              <button
-                type="button"
-                onClick={handleHumanAgentToggle}
-                style={{
-                  ...aiChatStyles.agentSwitch,
-                  ...(isLiveAgentChat ? aiChatStyles.agentSwitchActive : {}),
-                }}
-                aria-pressed={isLiveAgentChat}
-              >
-                <span
+              {isMobile && activePlan === 'Basic' && (
+                <button
+                  type="button"
+                  style={{ ...aiChatStyles.upgradeProBtn, ...aiChatStyles.upgradeProBtnMobile, width: "100%", justifyContent: "center" }}
+                  onClick={() => setShowProModal(true)}
+                >
+                  <span style={{ fontSize: "12px", marginTop: "-1px" }}>✨</span> Upgrade to Pro
+                </button>
+              )}
+              {isMobile && activePlan !== 'Basic' && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "6px 10px", borderRadius: "999px", background: activePlan === 'Enterprise' ? "rgba(14, 165, 233, 0.1)" : "rgba(234, 179, 8, 0.1)", color: activePlan === 'Enterprise' ? "#0284c7" : "#ca8a04", fontSize: "11px", fontWeight: 800, border: activePlan === 'Enterprise' ? "1px solid rgba(14, 165, 233, 0.2)" : "1px solid rgba(234, 179, 8, 0.2)", cursor: "default", whiteSpace: "nowrap" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  {activePlan} Active
+                </div>
+              )}
+              {!isMobile && (
+                <button
+                  type="button"
+                  onClick={handleHumanAgentToggle}
                   style={{
-                    ...aiChatStyles.agentSwitchTrack,
-                    ...(isLiveAgentChat ? aiChatStyles.agentSwitchTrackActive : {}),
+                    ...aiChatStyles.agentSwitch,
+                    ...(isLiveAgentChat ? aiChatStyles.agentSwitchActive : {}),
                   }}
+                  aria-pressed={isLiveAgentChat}
                 >
                   <span
                     style={{
-                      ...aiChatStyles.agentSwitchThumb,
-                      ...(isLiveAgentChat ? aiChatStyles.agentSwitchThumbActive : {}),
+                      ...aiChatStyles.agentSwitchTrack,
+                      ...(isLiveAgentChat ? aiChatStyles.agentSwitchTrackActive : {}),
                     }}
-                  />
-                </span>
-                Human agent
-              </button>
+                  >
+                    <span
+                      style={{
+                        ...aiChatStyles.agentSwitchThumb,
+                        ...(isLiveAgentChat ? aiChatStyles.agentSwitchThumbActive : {}),
+                      }}
+                    />
+                  </span>
+                  Human agent
+                </button>
+              )}
             </div>
             <button onClick={onClose} style={{ ...aiChatStyles.closeButton, ...(isMobile ? aiChatStyles.closeButtonMobile : {}) }}>
               &times;
             </button>
           </div>
         </div>
-        <div style={aiChatStyles.messagesContainer} className="slim-scroll">
+        <div style={{ ...aiChatStyles.messagesContainer, ...(isMobile ? aiChatStyles.messagesContainerMobile : {}) }} className="slim-scroll">
           {messages.length === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: 'auto', gap: '20px' }}>
               <p style={aiChatStyles.welcomeMessage}>
@@ -826,7 +841,7 @@ function AIChatInterface({ onClose, isMobile }) { // Removed autoCorrect and per
           )}
           <div ref={messagesEndRef} />
         </div>
-        <div style={aiChatStyles.inputContainer}>
+        <div style={{ ...aiChatStyles.inputContainer, ...(isMobile ? aiChatStyles.inputContainerMobile : {}) }}>
           <button
             type="button"
             style={{ ...aiChatStyles.iconButton, ...(isMobile ? aiChatStyles.iconButtonMobile : {}) }}
@@ -1187,6 +1202,14 @@ const aiChatStyles = {
     transition: "opacity 0.3s ease-out",
     boxSizing: "border-box",
   },
+  overlayMobile: {
+    background: "rgba(0, 0, 0, 0.42)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    padding: 0,
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  },
   chatContainer: {
     background: "#ffffff",
     borderRadius: "0px",
@@ -1203,11 +1226,19 @@ const aiChatStyles = {
     transition: "opacity 0.3s ease-out, transform 0.3s ease-out", // Animation transition
   },
   chatContainerMobile: {
-    width: "100%",
-    height: "100%",
-    maxWidth: "100%",
-    maxHeight: "100%",
-    borderRadius: "0",
+    width: "100vw",
+    maxWidth: "100vw",
+    height: "100dvh",
+    maxHeight: "100dvh",
+    margin: 0,
+    borderRadius: 0,
+    background: "linear-gradient(145deg, rgba(255,255,255,0.92), rgba(240,253,244,0.82))",
+    border: "none",
+    boxShadow: "none",
+    backdropFilter: "blur(24px) saturate(155%)",
+    WebkitBackdropFilter: "blur(24px) saturate(155%)",
+    boxSizing: "border-box",
+    transformOrigin: "top center",
   },
   toggleBotButton: {
     background: "rgba(21, 128, 61, 0.1)",
@@ -1231,6 +1262,12 @@ const aiChatStyles = {
     justifyContent: "space-between",
     alignItems: "center",
     background: "#ffffff",
+  },
+  chatHeaderMobile: {
+    padding: "calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px",
+    alignItems: "flex-start",
+    gap: "8px",
+    flexShrink: 0,
   },
 headerText: {
     display: "flex",
@@ -1270,6 +1307,10 @@ headerText: {
     flexDirection: "column",
     alignItems: "stretch",
     gap: "6px",
+  },
+  switcherStackMobile: {
+    minWidth: "118px",
+    gap: "5px",
   },
   agentSwitch: {
     display: "inline-flex",
@@ -1376,6 +1417,11 @@ headerText: {
     gap: "16px",
     background: "#f9fafb",
   },
+  messagesContainerMobile: {
+    padding: "14px 12px",
+    gap: "12px",
+    minHeight: 0,
+  },
   welcomeMessage: {
     textAlign: "center",
     color: "#374151",
@@ -1446,6 +1492,13 @@ aiMessage: {
     alignItems: "flex-end",
     borderBottomLeftRadius: "24px",
     borderBottomRightRadius: "24px",
+  },
+  inputContainerMobile: {
+    padding: "10px 10px calc(env(safe-area-inset-bottom, 0px) + 10px)",
+    gap: "8px",
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    flexShrink: 0,
   },
   chatInput: {
     flexGrow: 1,

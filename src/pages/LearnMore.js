@@ -353,6 +353,50 @@ function LearnMore({ setActiveNav }) {
           />
         ))}
       </div>
+
+      {isMobile && (
+        <div style={{ marginTop: '32px', width: '100%', paddingBottom: '32px' }}>
+          <h2 style={{ ...styles.titleMobile, fontSize: '24px', marginBottom: '8px' }}>
+            Problem <span style={styles.accent}>Addressed</span>
+          </h2>
+          <div style={styles.titleUnderline} />
+          <p style={{ ...styles.bodyMobile, marginBottom: '24px', padding: '0 16px', maxWidth: '100%' }}>
+            Dive deeper into our platform's capabilities and discover how we are
+            revolutionizing agriculture across the Philippines through sustainable practices.
+          </p>
+
+          <div style={styles.circleColMobile}>
+            <div style={styles.timelineItemMobile}>
+              <div className="inner-blur-glass" style={styles.circleMobile}><span>1980</span></div>
+              <div style={styles.timelineTextMobile}>
+                <h3 style={styles.timelineHeadingMobile}>SHIFT FROM SELF-SUFFICIENCY TO IMPORT DEPENDENCY</h3>
+                <p style={styles.timelineBodyMobile}>The Peso devaluation (1980s Debt Crisis) made imported inputs expensive, immediately followed by WTO liberalization (1995). This killed local farmer profitability and formally cemented the reliance on cheap rice imports.</p>
+              </div>
+            </div>
+            <div style={styles.timelineItemMobile}>
+              <div className="inner-blur-glass" style={styles.circleMobile}><span>2000</span></div>
+              <div style={styles.timelineTextMobile}>
+                <h3 style={styles.timelineHeadingMobile}>WTO ACCESSION & TRADE LIBERALIZATION</h3>
+                <p style={styles.timelineBodyMobile}>Cheap imports flooded the market, making local crops unprofitable. Policy formally shifted to Import-Based Security, severely reducing domestic food sufficiency.</p>
+              </div>
+            </div>
+            <div style={styles.timelineItemMobile}>
+              <div className="inner-blur-glass" style={styles.circleMobile}><span>2010</span></div>
+              <div style={styles.timelineTextMobile}>
+                <h3 style={styles.timelineHeadingMobile}>GLOBAL PRICE SHOCKS & RAPID URBANIZATION</h3>
+                <p style={styles.timelineBodyMobile}>Import dependency caused high USD rates to translate to inaccessible domestic food prices. Rapid conversion of farmland further reduced productive capacity, heightening scarcity in urban areas.</p>
+              </div>
+            </div>
+            <div style={styles.timelineItemMobile}>
+              <div className="inner-blur-glass" style={styles.circleMobile}><span>2020</span></div>
+              <div style={styles.timelineTextMobile}>
+                <h3 style={styles.timelineHeadingMobile}>PANDEMIC & SUPPLY CHAIN FRAGILITY</h3>
+                <p style={styles.timelineBodyMobile}>Global supply shocks demonstrated the inability to sustain the population without external aid. Chronic high food inflation coupled with low employment made food fundamentally unaffordable and inaccessible for many Filipinos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -666,6 +710,55 @@ const styles = {
   dotActive: {
     background: "#4ade80",
     boxShadow: "0 0 8px rgba(74, 222, 128, 0.55)",
+  },
+  circleColMobile: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "24px",
+    padding: "0 16px",
+  },
+  circleMobile: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    background: "linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4))",
+    border: "1px solid rgba(0,0,0,0.05)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#000",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px rgba(0,0,0,0.05)",
+    flexShrink: 0,
+  },
+  timelineItemMobile: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "12px",
+    textAlign: "center",
+  },
+  timelineTextMobile: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  },
+  timelineHeadingMobile: {
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#000",
+    margin: 0,
+    letterSpacing: "-0.2px",
+    lineHeight: 1.4,
+  },
+  timelineBodyMobile: {
+    fontSize: "12px",
+    color: "rgba(0, 0, 0, 0.8)",
+    lineHeight: 1.5,
+    margin: 0,
+    textAlign: "center",
   },
   backBtn: {
     padding: "8px 16px",
