@@ -1227,8 +1227,14 @@ return (
             onMouseLeave={() => setHoveredCard(null)}
           >
             <span aria-hidden="true" style={styles.cardInnerBlur} />
-            <div style={styles.profileHeader}>
-              <img src={advisor.image} alt={advisor.name} style={styles.profileImage} />
+            <div style={styles.profileHeader}> {/* Conditional rendering for advisor image */}
+              {advisor.image ? (
+                <img src={advisor.image} alt={advisor.name} style={styles.profileImage} />
+              ) : (
+                <div style={{ ...styles.profileImage, ...styles.blankImagePlaceholder }}>
+                  {/* Blank placeholder */}
+                </div>
+              )}
               <div style={styles.nameAndBadge}>
                 <h3 style={styles.advisorName}>{advisor.name}</h3>
                 {advisor.verified && <span style={styles.verifiedBadge}><FaCheckCircle /> Verified</span>}
@@ -1479,6 +1485,14 @@ bodyMobile: {
     objectFit: "cover",
     border: "3px solid #4ade80",
     boxShadow: "0 4px 12px rgba(74,222,128,0.3)",
+  },
+  blankImagePlaceholder: {
+    backgroundColor: "#f0fdf4", // Light green background for blank image
+    border: "3px solid #dcfce7",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px", // Optional: adjust size if you want an initial or icon
   },
   nameAndBadge: {
     display: "flex",

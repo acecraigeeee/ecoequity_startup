@@ -81,10 +81,7 @@ function OurTeam() {
             {c.img ? (
               <img src={c.img} alt={c.name} style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}) }} />
             ) : (
-              <div style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}), ...styles.blankImagePlaceholder }}>
-                <span style={styles.blankImageText}>
-                  {c.name.charAt(0).toUpperCase()}
-                </span>
+              <div style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}), ...styles.blankImagePlaceholder }}> {/* Blank placeholder */}
               </div>
             )}
             <h3 style={{ ...styles.cardHeading, ...(isMobile ? styles.cardHeadingMobile : {}) }}>{c.name}</h3>
