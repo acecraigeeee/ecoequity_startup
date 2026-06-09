@@ -3,8 +3,8 @@ import ReactDOM from "react-dom";
 import { FaArrowLeft, FaMapMarkerAlt, FaWeightHanging, FaDollarSign, FaPlusCircle, FaHandshake, FaTimes, FaChevronDown, FaCheckCircle, FaCalendarAlt, FaChartLine, FaFilter, FaPaperPlane, FaMicrophone, FaImage } from "react-icons/fa";
 
 const mockSurplusListings = [
-  { id: 1, product: "Organic Tomatoes", quantity: 500, unit: "kg", price: 120, location: "Benguet", farmer: "Green Harvest Farms", status: "Available", description: "Freshly harvested organic tomatoes for bulk delivery." },
-  { id: 2, product: "Native Adlai Grains", quantity: 200, unit: "kg", price: 180, location: "Mindanao", farmer: "Adlai Gold Producers", status: "Available", description: "High-quality sustainable grains." }
+  { id: 1, product: "Organic Tomatoes", quantity: 500, unit: "kg", price: 120, location: "Benguet", farmer: "Green Harvest Farms", status: "Approved", description: "Freshly harvested organic tomatoes for bulk delivery." },
+  { id: 2, product: "Native Adlai Grains", quantity: 200, unit: "kg", price: 180, location: "Mindanao", farmer: "Adlai Gold Producers", status: "Approved", description: "High-quality sustainable grains." }
   // Add more mock data if needed for testing different scenarios
 ];
 
@@ -14,14 +14,14 @@ const mockRestaurantDemand = [
   { id: 103, restaurant: "Vegan Eats", verified: true, product: "Sweet Basil", quantity: 5, unit: "kg", targetPrice: 400, location: "Quezon City", neededDate: "2026-06-02", logo: "🌱", matchScore: 72, urgent: true, status: "Open" },
 ];
 
-function SurplusExchangePage({ setActiveNav }) {
+function SurplusExchangePage({ setActiveNav, surplusListings: sharedSurplusListings, setSurplusListings: setSharedSurplusListings, loggedInUser }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeTab, setActiveTab] = useState("listings");
   const [hoveredTab, setHoveredTab] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalType, setModalType] = useState(null); // 'negotiate' or 'offer'
   const [searchQuery, setSearchQuery] = useState("");
-  const [surplusListings, setSurplusListings] = useState(mockSurplusListings);
+  const [localSurplusListings, setLocalSurplusListings] = useState(mockSurplusListings);
   const [restaurantDemands, setRestaurantDemands] = useState(mockRestaurantDemand);
   const [showListSurplusModal, setShowListSurplusModal] = useState(false);
   const [showPostDemandModal, setShowPostDemandModal] = useState(false);
@@ -54,6 +54,8 @@ function SurplusExchangePage({ setActiveNav }) {
   const [categoryFilter, setCategoryFilter] = useState("All Categories");
   const [locationFilter, setLocationFilter] = useState("All Locations");
   const [urgentOnly, setUrgentOnly] = useState(false);
+  const surplusListings = Array.isArray(sharedSurplusListings) ? sharedSurplusListings : localSurplusListings;
+  const updateSurplusListings = setSharedSurplusListings || setLocalSurplusListings;
 
   useEffect(() => {
     if (selectedItem || showListSurplusModal || showRestaurantOfferModal || showPostDemandModal || trackingDelivery) {
@@ -383,7 +385,7 @@ function SurplusExchangePage({ setActiveNav }) {
   };
 
   const sortedListings = useMemo(() => {
-    let sortableItems = [...surplusListings];
+    let sortableItems = [...surplusListings].filter(item => item.status !== "Removed");
 
     // Primary filter: Active vs. Archived
     if (filter === 'active') {
@@ -420,7 +422,7 @@ function SurplusExchangePage({ setActiveNav }) {
       });
     }
     return sortableItems; // Renamed to filteredAndSortedListings for clarity
-  }, [surplusListings, sortConfig, searchQuery]);
+  }, [surplusListings, sortConfig, searchQuery, filter, showOngoingOnly, negotiations]);
 
   const requestSort = (key) => {
     let direction = 'ascending';
@@ -432,17 +434,29 @@ function SurplusExchangePage({ setActiveNav }) {
 
   const getSortIndicator = (name) => sortConfig.key === name ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : '';
 
+  const getSurplusStatusStyle = (status) => {
+    if (status === "Approved") return { background: "rgba(22,163,74,0.12)", color: "#15803d" };
+    if (status === "Pending Review") return { background: "rgba(245,158,11,0.12)", color: "#b45309" };
+    if (status === "Paused") return { background: "rgba(14,165,233,0.12)", color: "#0369a1" };
+    if (status === "Sold") return { background: "rgba(107,114,128,0.12)", color: "#4b5563" };
+    return { background: "rgba(107,114,128,0.1)", color: "#6b7280" };
+  };
+
   const handleListSurplusSubmit = (e) => {
     e.preventDefault();
     setIsSubmittingSurplus(true);
     setTimeout(() => {
       const newItem = {
-        id: Date.now(),
+        id: `SUR-${Date.now().toString().slice(-6)}`,
         ...newSurplus,
-        farmer: "Your Farm", // Placeholder for logged-in user
-        status: "Available"
+        quantity: Number(newSurplus.quantity),
+        price: Number(newSurplus.price),
+        farmer: loggedInUser || "Client Seller",
+        status: "Pending Review",
+        submittedAt: new Date().toLocaleString(),
+        source: "Client Website"
       };
-      setSurplusListings(prev => [newItem, ...prev]);
+      updateSurplusListings(prev => [newItem, ...prev]);
       setIsSubmittingSurplus(false);
       setShowListSurplusModal(false);
       setNewSurplus({ product: "", quantity: "", unit: "kg", price: "", location: "", description: "" });
@@ -537,6 +551,7 @@ function SurplusExchangePage({ setActiveNav }) {
                 <th style={styles.th} onClick={() => requestSort('product')}>Product{getSortIndicator('product')}</th>
                 <th style={styles.th} onClick={() => requestSort('quantity')}>Qty{getSortIndicator('quantity')}</th>
                 {!isMobile && <th style={styles.th} onClick={() => requestSort('price')}>Price{getSortIndicator('price')}</th>}
+                {!isMobile && <th style={{...styles.th, cursor: 'default'}}>Status</th>}
                 <th style={{...styles.th, cursor: 'default'}}>Action</th>
               </tr>
             </thead>
@@ -548,12 +563,16 @@ function SurplusExchangePage({ setActiveNav }) {
                   const isCompleted = negotiationState?.status === 'completed';
                   const isDeclined = negotiationState?.status === 'declined';
                   const hasOngoingNegotiation = negotiationState && !isDeclined && !isCompleted;
+                  const listingStatus = item.status || "Approved";
+                  const isActionDisabled = listingStatus !== "Approved";
+                  const actionLabel = listingStatus === "Pending Review" ? "Pending Review" : listingStatus === "Paused" ? "Paused" : listingStatus === "Sold" ? "Sold" : isCompleted ? 'View Archive' : isDeclined ? 'Re-open' : hasOngoingNegotiation ? 'Continue' : 'Negotiate';
                   return (
                     <tr key={item.id} style={styles.tr}>
                       <td style={styles.td}>{item.product}</td>
                       <td style={styles.td}>{item.quantity}{item.unit}</td>
                       {!isMobile && <td style={styles.td}>₱{item.price}</td>}
-                      <td style={styles.td}><button style={{...styles.tableActionBtn, ...(isDeclined ? styles.reopenBtnSmall : {}), ...(isCompleted ? styles.viewArchiveBtn : {})}} onClick={() => openNegotiateModal(item)}>{isCompleted ? 'View Archive' : isDeclined ? 'Re-open' : hasOngoingNegotiation ? 'Continue' : 'Negotiate'}</button>{hasOngoingNegotiation && <span style={styles.ongoingIndicator}>Ongoing</span>}{isDeclined && <span style={styles.declinedIndicator}>Declined</span>}{isCompleted && <span style={styles.completedIndicator}>Completed</span>}</td>
+                      {!isMobile && <td style={styles.td}><span style={{ ...styles.statusPill, ...getSurplusStatusStyle(listingStatus) }}>{listingStatus}</span></td>}
+                      <td style={styles.td}><button disabled={isActionDisabled} style={{...styles.tableActionBtn, ...(isDeclined ? styles.reopenBtnSmall : {}), ...(isCompleted ? styles.viewArchiveBtn : {}), ...(isActionDisabled ? styles.tableActionBtnDisabled : {})}} onClick={() => !isActionDisabled && openNegotiateModal(item)}>{actionLabel}</button>{hasOngoingNegotiation && <span style={styles.ongoingIndicator}>Ongoing</span>}{isDeclined && <span style={styles.declinedIndicator}>Declined</span>}{isCompleted && <span style={styles.completedIndicator}>Completed</span>}</td>
                     </tr>
                   );
                 })()
@@ -1033,6 +1052,8 @@ const styles = {
   th: { padding: "16px", color: "#15803d", fontSize: "13px", borderBottom: "1px solid rgba(0,0,0,0.05)", cursor: 'pointer', userSelect: 'none' },
   td: { padding: "16px", fontSize: "14px", borderBottom: "1px solid rgba(0,0,0,0.02)" },
   tableActionBtn: { padding: "6px 12px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", cursor: "pointer", fontWeight: 700, boxShadow: "0 18px 38px rgba(34,197,94,0.26)", transition: "all 0.2s ease" },
+  tableActionBtnDisabled: { opacity: 0.68, cursor: "not-allowed", background: "rgba(0,0,0,0.08)", color: "#4b5563", boxShadow: "none", border: "1px solid rgba(0,0,0,0.06)" },
+  statusPill: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 8px", borderRadius: "999px", fontSize: "11px", fontWeight: 800, whiteSpace: "nowrap" },
   floatingActionBtn: { marginTop: "24px", display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "999px", background: "linear-gradient(135deg, rgba(134,239,172,0.95), rgba(125,211,252,0.95))", color: "#062018", border: "1px solid rgba(255,255,255,0.35)", fontWeight: 700, cursor: "pointer", boxShadow: "0 18px 38px rgba(34,197,94,0.26)", fontSize: "14px", transition: "all 0.2s ease" }, 
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, animation: "fadeIn 0.3s ease", padding: "20px", boxSizing: "border-box" },
   negotiateModalContent: { maxWidth: "880px", width: "100%", maxHeight: "calc(100vh - 40px)", background: "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(240,253,244,0.93))", border: "1px solid rgba(255,255,255,0.8)", borderRadius: "20px", padding: "20px", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", animation: "scaleUp 0.4s cubic-bezier(.22,1,.36,1)", overflow: "hidden", boxSizing: "border-box" },

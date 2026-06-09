@@ -40,10 +40,48 @@ const partnershipData = [
   },
 ];
 
-function LGUPartnershipPage({ setActiveNav }) {
+const lguStatIconMap = {
+  handshake: FaHandshake,
+  chart: FaChartBar,
+  users: FaUsers,
+};
+
+const lguManagementIconMap = {
+  lightbulb: FaLightbulb,
+  users: FaUsers,
+};
+
+const defaultLguContent = {
+  header: {
+    badge: "LGU Partnerships",
+    titleLead: "LGU Partnerships",
+    titleAccent: "Dashboard",
+    description: "Explore our collaborative programs with local government units, driving sustainable agricultural development and community empowerment across the Philippines.",
+  },
+  stats: [
+    { label: "Active LGUs", value: "42", iconKey: "handshake" },
+    { label: "Programs Launched", value: "128", iconKey: "chart" },
+    { label: "Community Reach", value: "15,000+", iconKey: "users" },
+  ],
+  programsTitle: "Collaboration Programs",
+  programs: partnershipData,
+  managementTitle: "Institutional Management",
+  managementItems: [
+    { label: "Policy Integration", text: "Facilitating policy alignment for sustainable agriculture.", iconKey: "lightbulb" },
+    { label: "Capacity Building", text: "Training programs for LGU personnel and community leaders.", iconKey: "users" },
+  ],
+  ctaLabel: "View Reports",
+};
+
+function LGUPartnershipPage({ setActiveNav, sectorContent }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isHoveredBack, setIsHoveredBack] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const content = {
+    ...defaultLguContent,
+    ...(sectorContent || {}),
+    header: { ...defaultLguContent.header, ...(sectorContent?.header || {}) },
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -82,55 +120,47 @@ function LGUPartnershipPage({ setActiveNav }) {
         </div>
         <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          <span style={styles.glassContentLayer}>LGU Partnerships</span>
+          <span style={styles.glassContentLayer}>{content.header.badge}</span>
         </div>
       </div>
 
       <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
-        LGU Partnerships <span style={styles.titleAccent}>Dashboard</span>
+        {content.header.titleLead} <span style={styles.titleAccent}>{content.header.titleAccent}</span>
       </h1>
       <div style={styles.titleUnderline} />
 
       <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>
-        Explore our collaborative programs with local government units, driving sustainable agricultural development and community empowerment across the Philippines.
+        {content.header.description}
       </p>
 
       <div style={{ ...styles.dashboardGrid, ...(isMobile ? styles.dashboardGridMobile : {}) }}>
         {/* Analytics Cards */}
-        <div className="inner-blur-glass" style={styles.analyticsCard}>
-          <FaHandshake style={styles.analyticsIcon} />
-          <h3 style={styles.analyticsTitle}>Active LGUs</h3>
-          <p style={styles.analyticsValue}>42</p>
-        </div>
-        <div className="inner-blur-glass" style={styles.analyticsCard}>
-          <FaChartBar style={styles.analyticsIcon} />
-          <h3 style={styles.analyticsTitle}>Programs Launched</h3>
-          <p style={styles.analyticsValue}>128</p>
-        </div>
-        <div className="inner-blur-glass" style={styles.analyticsCard}>
-          <FaUsers style={styles.analyticsIcon} />
-          <h3 style={styles.analyticsTitle}>Community Reach</h3>
-          <p style={styles.analyticsValue}>15,000+</p>
-        </div>
+        {(content.stats || []).map((stat, index) => (
+          <div key={`${stat.label}-${index}`} className="inner-blur-glass" style={styles.analyticsCard}>
+            {React.createElement(lguStatIconMap[stat.iconKey] || lguStatIconMap.handshake, { style: styles.analyticsIcon })}
+            <h3 style={styles.analyticsTitle}>{stat.label}</h3>
+            <p style={styles.analyticsValue}>{stat.value}</p>
+          </div>
+        ))}
 
         {/* Program List */}
         <div className="inner-blur-glass" style={{ ...styles.panelCard, ...styles.programListCard }}>
-          <h3 style={styles.panelTitle}>Collaboration Programs</h3>
+          <h3 style={styles.panelTitle}>{content.programsTitle}</h3>
           <ul style={styles.programList}>
-            {partnershipData.map((item) => (
-              <li key={item.id} style={styles.programListItem}>
+            {(content.programs || []).map((item, index) => (
+              <li key={item.id || index} style={styles.programListItem}>
                 <div style={styles.programHeader}>
-                  <span style={styles.programIcon}>{item.icon}</span>
+                  <span style={styles.programIcon}><FaMapMarkerAlt style={{ color: "#15803d" }} /></span>
                   <span style={styles.programName}>{item.program}</span>
                 </div>
-                <p style={styles.programLGU}>{item.lgu}</p>
+                <p style={styles.programLGU}>{item.address || item.lgu}</p>
                 <div style={styles.programMeta}>
                   <span style={styles.programStatus}>
                     {item.status === "Active" ? <FaCheckCircle style={{ color: "#22c55e" }} /> : <FaHourglassHalf style={{ color: "#fbbf24" }} />} {item.status}
                   </span>
                   <span style={styles.programDate}><FaCalendarAlt /> {item.startDate}</span>
                 </div>
-                <p style={styles.programImpact}>{item.impact}</p>
+                <p style={styles.programImpact}>{item.description || item.impact}</p>
               </li>
             ))}
           </ul>
@@ -138,22 +168,20 @@ function LGUPartnershipPage({ setActiveNav }) {
 
         {/* Institutional Management Panel */}
         <div className="inner-blur-glass" style={{ ...styles.panelCard, ...styles.managementPanel }}>
-          <h3 style={styles.panelTitle}>Institutional Management</h3>
-          <div style={styles.managementItem}>
-            <FaLightbulb style={styles.managementIcon} />
-            <div style={styles.managementDetails}>
-              <span style={styles.managementLabel}>Policy Integration</span>
-              <p style={styles.managementText}>Facilitating policy alignment for sustainable agriculture.</p>
-            </div>
-          </div>
-          <div style={styles.managementItem}>
-            <FaUsers style={styles.managementIcon} />
-            <div style={styles.managementDetails}>
-              <span style={styles.managementLabel}>Capacity Building</span>
-              <p style={styles.managementText}>Training programs for LGU personnel and community leaders.</p>
-            </div>
-          </div>
-          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>View Reports</button>
+          <h3 style={styles.panelTitle}>{content.managementTitle}</h3>
+          {(content.managementItems || []).map((item, index) => {
+            const Icon = lguManagementIconMap[item.iconKey] || FaLightbulb;
+            return (
+              <div key={`${item.label}-${index}`} style={styles.managementItem}>
+                <Icon style={styles.managementIcon} />
+                <div style={styles.managementDetails}>
+                  <span style={styles.managementLabel}>{item.label}</span>
+                  <p style={styles.managementText}>{item.text}</p>
+                </div>
+              </div>
+            );
+          })}
+          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>{content.ctaLabel}</button>
         </div>
       </div>
     </div>

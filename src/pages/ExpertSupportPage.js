@@ -54,9 +54,6 @@ const mockAdvisors = [
   },
 ];
 
-// Extract unique expertise categories for filtering
-const allExpertise = [...new Set(mockAdvisors.flatMap((advisor) => advisor.expertise))];
-
 // Consultation pricing options
 const consultationTypes = [
   { id: "video", name: "Video Call", duration: "3 hours", price: 1000, icon: FaVideo, description: "Face-to-face video consultation" },
@@ -160,7 +157,14 @@ const defaultSuggestions = [
   "Sustainable farming tips"
 ];
 
-function ExpertSupportPage({ setActiveNav }) {
+const consultationIconMap = {
+  video: FaVideo,
+  phone: FaPhone,
+  chat: FaPaperPlane,
+  emergency: FaExclamationTriangle,
+};
+
+function ExpertSupportPage({ setActiveNav, expertSupportConfig }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isHoveredBack, setIsHoveredBack] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -193,6 +197,24 @@ function ExpertSupportPage({ setActiveNav }) {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const advisors = Array.isArray(expertSupportConfig?.advisors) && expertSupportConfig.advisors.length > 0 ? expertSupportConfig.advisors : mockAdvisors;
+  const expertiseCategories = [...new Set(advisors.flatMap((advisor) => advisor.expertise || []))];
+  const supportInfo = {
+    badge: "Expert Support",
+    titleLead: "Verified",
+    titleAccent: "Agriculture Specialists",
+    description: "Connect with our network of verified agriculture specialists and advisors for personalized guidance and support.",
+    emergencyNote: "Emergency consultations prioritize urgent agricultural issues and are charged a premium rate.",
+    ...(expertSupportConfig?.supportInfo || {}),
+  };
+  const configuredConsultationTypes = (Array.isArray(expertSupportConfig?.consultationTypes) && expertSupportConfig.consultationTypes.length > 0 ? expertSupportConfig.consultationTypes : consultationTypes).map(type => ({
+    ...type,
+    icon: consultationIconMap[type.id] || FaCalendarCheck,
+  }));
+  const configuredFaqs = Array.isArray(expertSupportConfig?.faqs) && expertSupportConfig.faqs.length > 0 ? expertSupportConfig.faqs : faqData;
+  const configuredTimeSlots = Array.isArray(expertSupportConfig?.timeSlots) && expertSupportConfig.timeSlots.length > 0 ? expertSupportConfig.timeSlots : timeSlots;
+  const configuredQuickSuggestions = expertSupportConfig?.quickSuggestions || quickSuggestionsData;
+  const configuredDefaultSuggestions = Array.isArray(expertSupportConfig?.defaultSuggestions) && expertSupportConfig.defaultSuggestions.length > 0 ? expertSupportConfig.defaultSuggestions : defaultSuggestions;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -218,8 +240,8 @@ useEffect(() => {
 
   // Filter advisors based on selected filter
   const filteredAdvisors = selectedFilter === "All"
-    ? mockAdvisors
-    : mockAdvisors.filter((advisor) => advisor.expertise.includes(selectedFilter));
+    ? advisors
+    : advisors.filter((advisor) => (advisor.expertise || []).includes(selectedFilter));
 
 const handleBookConsultation = (advisor, defaultType = null, isInstant = false) => {
     setSelectedAdvisor(advisor);
@@ -452,7 +474,7 @@ const handleConfirmBooking = () => {
       return "Great question! The best crops depend on your location, soil type, and season. For Philippine climate, consider heat-tolerant varieties. Would you like specific recommendations for your area or the current season?";
     }
     if (lowerInput.includes("help") || lowerInput.includes("how")) {
-      return "I'm here to help! Based on my expertise in " + advisor.expertise.join(", ") + ", I can provide guidance. Could you tell me more about your specific situation or what you're trying to grow?";
+      return "I'm here to help! Based on my expertise in " + ((advisor.expertise || []).join(", ") || "sustainable agriculture") + ", I can provide guidance. Could you tell me more about your specific situation or what you're trying to grow?";
     }
     if (lowerInput.includes("thank")) {
       return "You're welcome! Don't hesitate to ask if you have more questions. Good luck with your farming journey!";
@@ -462,7 +484,7 @@ const handleConfirmBooking = () => {
     }
     
     // Default response based on advisor expertise
-    return `Thank you for your question! Based on my experience in ${advisor.expertise[0]}, I'd be happy to provide more detailed information. Could you share more details about your specific situation? For example, what are you growing, and what challenges are you facing?`;
+    return `Thank you for your question! Based on my experience in ${(advisor.expertise || [])[0] || "sustainable agriculture"}, I'd be happy to provide more detailed information. Could you share more details about your specific situation? For example, what are you growing, and what challenges are you facing?`;
   };
 
 const handleKeyDown = (e) => {
@@ -474,14 +496,14 @@ const handleKeyDown = (e) => {
 
   // Get quick suggestions based on advisor expertise
   const getQuickSuggestions = () => {
-    if (!selectedAdvisorForChat) return defaultSuggestions;
+    if (!selectedAdvisorForChat) return configuredDefaultSuggestions;
     
-    for (const exp of selectedAdvisorForChat.expertise) {
-      if (quickSuggestionsData[exp]) {
-        return quickSuggestionsData[exp];
+    for (const exp of (selectedAdvisorForChat.expertise || [])) {
+      if (configuredQuickSuggestions[exp]) {
+        return configuredQuickSuggestions[exp];
       }
     }
-    return defaultSuggestions;
+    return configuredDefaultSuggestions;
   };
 
   // Chat Modal Render
@@ -518,7 +540,7 @@ const handleKeyDown = (e) => {
                   if (isCallPaid) {
                     alert(`Calling ${selectedAdvisorForChat.name}...`);
                   } else {
-                    handleBookConsultation(selectedAdvisorForChat, consultationTypes.find(t => t.id === "phone"), true);
+                    handleBookConsultation(selectedAdvisorForChat, configuredConsultationTypes.find(t => t.id === "phone"), true);
                   }
                 }}
                 title={isCallPaid ? "Voice Call" : "Locked: Book Phone Call"}
@@ -540,7 +562,7 @@ const handleKeyDown = (e) => {
                   if (isVideoPaid) {
                     alert(`Starting video call with ${selectedAdvisorForChat.name}...`);
                   } else {
-                    handleBookConsultation(selectedAdvisorForChat, consultationTypes.find(t => t.id === "video"), true);
+                    handleBookConsultation(selectedAdvisorForChat, configuredConsultationTypes.find(t => t.id === "video"), true);
                   }
                 }}
                 title={isVideoPaid ? "Video Call" : "Locked: Book Video Call"}
@@ -633,7 +655,7 @@ const handleKeyDown = (e) => {
       const dateStr = selectedDate;
       const timeStr = selectedTime;
       const title = encodeURIComponent(`Consultation with ${selectedAdvisor.name}`);
-      const details = encodeURIComponent(`${selectedType?.name} consultation about ${selectedTopic || selectedAdvisor.expertise[0]}`);
+      const details = encodeURIComponent(`${selectedType?.name} consultation about ${selectedTopic || (selectedAdvisor.expertise || [])[0] || "agriculture support"}`);
       const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr.replace(/-/g, '')}/${dateStr.replace(/-/g, '')}&details=${details}`;
       window.open(calendarUrl, '_blank');
     }
@@ -654,7 +676,7 @@ const handleKeyDown = (e) => {
                 <img src={selectedAdvisor.image} alt={selectedAdvisor.name} style={modalStyles.advisorImg} />
                 <div>
                   <h3 style={modalStyles.advisorName}>{selectedAdvisor.name}</h3>
-                  <span style={modalStyles.advisorExpertise}>{selectedAdvisor.expertise.join(", ")}</span>
+                  <span style={modalStyles.advisorExpertise}>{(selectedAdvisor.expertise || []).join(", ") || "Agriculture Support"}</span>
                 </div>
               </div>
               
@@ -662,7 +684,7 @@ const handleKeyDown = (e) => {
               
               {/* Consultation Type Selection */}
               <div style={modalStyles.typeGrid}>
-                {consultationTypes.map((type) => (
+                {configuredConsultationTypes.map((type) => (
                   <button
                     key={type.id}
                     style={{ ...modalStyles.typeCard, ...(selectedType?.id === type.id ? modalStyles.typeCardSelected : {}) }}
@@ -679,7 +701,7 @@ const handleKeyDown = (e) => {
               {/* Emergency Consultation Notice */}
               <div style={modalStyles.emergencyNote}>
                 <FaExclamationTriangle style={{ marginRight: "8px" }} />
-                <span>Emergency consultations prioritize urgent agricultural issues and are charged a premium rate.</span>
+                <span>{supportInfo.emergencyNote}</span>
               </div>
 
               {/* FAQ Toggle */}
@@ -689,7 +711,7 @@ const handleKeyDown = (e) => {
               
               {showFaq && (
                 <div style={modalStyles.faqContainer}>
-                  {faqData.map((faq, index) => (
+                  {configuredFaqs.map((faq, index) => (
                     <div key={index} style={modalStyles.faqItem}>
                       <button style={modalStyles.faqQuestion} onClick={() => setFaqOpenIndex(faqOpenIndex === index ? null : index)}>
                         {faq.question} {faqOpenIndex === index ? "−" : "+"}
@@ -770,7 +792,7 @@ const handleKeyDown = (e) => {
                       </button>
                       {showTopicDropdown && (
                         <div style={modalStyles.customDropdownList}>
-                          {selectedAdvisor.expertise.map((topic) => (
+                          {(selectedAdvisor.expertise || []).map((topic) => (
                             <div 
                               key={topic} 
                               onClick={() => { setSelectedTopic(topic); setShowTopicDropdown(false); }}
@@ -917,7 +939,7 @@ const handleKeyDown = (e) => {
                   <div style={modalStyles.formGroup}>
                     <label style={modalStyles.label}>Preferred Time</label>
                     <div style={modalStyles.timeSlots}>
-                      {timeSlots.map((time) => (
+                      {configuredTimeSlots.map((time) => (
                         <button
                           key={time}
                           style={{ ...modalStyles.timeSlot, ...(selectedTime === time ? modalStyles.timeSlotSelected : {}) }}
@@ -1152,17 +1174,17 @@ return (
         </div>
         <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          <span>Expert Support</span>
+          <span>{supportInfo.badge}</span>
         </div>
       </div>
 
       <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
-        Verified <span style={styles.accent}>Agriculture Specialists</span>
+        {supportInfo.titleLead} <span style={styles.accent}>{supportInfo.titleAccent}</span>
       </h1>
       <div style={styles.titleUnderline} />
 
 <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>
-        Connect with our network of verified agriculture specialists and advisors for personalized guidance and support.
+        {supportInfo.description}
       </p>
 
       {/* Filter Buttons */}
@@ -1176,7 +1198,7 @@ return (
         >
           All
         </button>
-        {allExpertise.map((category) => (
+        {expertiseCategories.map((category) => (
           <button
             key={category}
             style={{
@@ -1223,7 +1245,7 @@ return (
               <span style={styles.scheduleItem}><FaClock color="#15803d" /> {advisor.availableTime}</span>
             </div>
             <p style={styles.expertise}>
-              <strong>Expertise:</strong> {advisor.expertise.join(", ")}
+              <strong>Expertise:</strong> {(advisor.expertise || []).join(", ") || "Agriculture Support"}
             </p>
             <p style={styles.bio}>{advisor.bio}</p>
 <div style={styles.ctaButtons}>
@@ -1242,7 +1264,7 @@ return (
                   if (isChatPaid) {
                     handleOpenChat(advisor);
                   } else {
-                    handleBookConsultation(advisor, consultationTypes.find(t => t.id === "chat"), true);
+                    handleBookConsultation(advisor, configuredConsultationTypes.find(t => t.id === "chat"), true);
                   }
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.025)'} 

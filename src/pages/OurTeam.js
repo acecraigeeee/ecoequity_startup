@@ -12,10 +12,10 @@ function OurTeam() {
   }, []);
 
   const team = [
-    { name: "JHUN RUSSEL D. CLEMENTE", role: "ROLE", img: "Russel.jpeg" },
-    { name: "NAME", role: "ROLE", img: "Rus3.jpeg" },
-    { name: "NAME", role: "ROLE", img: "Rus4.jpeg" },
-    { name: "NAME", role: "ROLE", img: "Rus5.jpeg" },
+    { name: "JHUN RUSSEL D. CLEMENTE", role: "ROLE", img: null },
+    { name: "NAME", role: "ROLE", img: null },
+    { name: "NAME", role: "ROLE", img: null },
+    { name: "NAME", role: "ROLE", img: null },
   ];
 
   const handleScroll = (e) => {
@@ -78,7 +78,15 @@ function OurTeam() {
             onMouseEnter={() => setHoveredCard(index)}
             onMouseLeave={() => setHoveredCard(null)}
           >
-            <img src={c.img} alt={c.name} style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}) }} />
+            {c.img ? (
+              <img src={c.img} alt={c.name} style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}) }} />
+            ) : (
+              <div style={{ ...styles.cardImage, ...(isMobile ? styles.cardImageMobile : {}), ...styles.blankImagePlaceholder }}>
+                <span style={styles.blankImageText}>
+                  {c.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <h3 style={{ ...styles.cardHeading, ...(isMobile ? styles.cardHeadingMobile : {}) }}>{c.name}</h3>
             <p style={{ ...styles.cardRole, ...(isMobile ? styles.cardRoleMobile : {}) }}>{c.role}</p>
           </div>

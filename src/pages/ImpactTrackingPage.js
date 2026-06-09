@@ -15,10 +15,54 @@ const communityImpactData = [
   { id: 4, area: "Biodiversity Preservation", progress: 65, color: "#fbbf24" },
 ];
 
-function ImpactTrackingPage({ setActiveNav }) {
+const impactIconMap = {
+  leaf: FaLeaf,
+  cloud: FaCloudMeatball,
+  users: FaUsers,
+  handshake: FaHandshake,
+};
+
+const defaultImpactTrackingContent = {
+  header: {
+    badge: "Impact Tracking",
+    titleLead: "Measuring Our",
+    titleAccent: "Impact",
+    description: "Our commitment to sustainability is backed by data. We meticulously track key metrics to ensure transparency and drive meaningful environmental and community impact.",
+  },
+  stats: impactStats.map(stat => ({
+    label: stat.label,
+    value: stat.value,
+    iconKey: stat.id === 1 ? "leaf" : stat.id === 2 ? "cloud" : stat.id === 3 ? "users" : "handshake",
+  })),
+  chartTitle: "Community Impact Areas",
+  chartBars: communityImpactData.map(item => ({
+    label: item.area,
+    value: item.progress,
+    color: item.color,
+  })),
+  chartCtaLabel: "View Detailed Report",
+  metricsTitle: "Environmental Metrics",
+  metrics: [
+    { value: "150+ Tons", label: "Crops Grown", iconKey: "leaf" },
+    { value: "100+ Tons", label: "CO₂ Reduced", iconKey: "cloud" },
+  ],
+  metricsCtaLabel: "Analyze Trends",
+  peopleTitle: "People Reached",
+  peopleValue: "15,000+",
+  peopleLabel: "Individuals Empowered",
+  peopleDescription: "Through workshops, direct support, and community programs, we've empowered thousands to embrace sustainable agriculture.",
+  peopleCtaLabel: "Explore Stories",
+};
+
+function ImpactTrackingPage({ setActiveNav, sectorContent }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isHoveredBack, setIsHoveredBack] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const content = {
+    ...defaultImpactTrackingContent,
+    ...(sectorContent || {}),
+    header: { ...defaultImpactTrackingContent.header, ...(sectorContent?.header || {}) },
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -61,44 +105,49 @@ function ImpactTrackingPage({ setActiveNav }) {
         </div>
         <div className="inner-blur-glass glass-hover-zoom-sm" style={styles.badge}>
           <span style={styles.badgeDot} />
-          <span style={styles.glassContentLayer}>Impact Tracking</span>
+          <span style={styles.glassContentLayer}>{content.header.badge}</span>
         </div>
       </div>
 
       <h1 style={{ ...styles.title, ...(isMobile ? styles.titleMobile : {}) }}>
-        Measuring Our <span style={styles.titleAccent}>Impact</span>
+        {content.header.titleLead} <span style={styles.titleAccent}>{content.header.titleAccent}</span>
       </h1>
       <div style={styles.titleUnderline} />
 
       <p style={{ ...styles.body, ...(isMobile ? styles.bodyMobile : {}) }}>
-        Our commitment to sustainability is backed by data. We meticulously track key metrics to ensure transparency and drive meaningful environmental and community impact.
+        {content.header.description}
       </p>
 
       <div style={{ ...styles.dashboardGrid, ...(isMobile ? styles.dashboardGridMobile : {}) }}>
         
         {/* Animated Statistics Cards */}
         <div style={styles.statsRow}>
-          {impactStats.map((stat) => (
-            <div key={stat.id} className="inner-blur-glass" style={styles.statCard}>
-              <div style={styles.statIcon}>{stat.icon}</div>
+          {(content.stats || []).map((stat, index) => {
+            const Icon = impactIconMap[stat.iconKey] || FaLeaf;
+            return (
+            <div key={`${stat.label}-${index}`} className="inner-blur-glass" style={styles.statCard}>
+              <div style={styles.statIcon}><Icon /></div>
               <div style={styles.statValue}>{stat.value}</div>
               <div style={styles.statLabel}>{stat.label}</div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Community Impact Data (Chart-like visualization) */}
         <div className="inner-blur-glass" style={styles.chartCard}>
           <div style={styles.cardHeader}>
             <FaHandshake style={styles.cardIcon} />
-            <h3 style={styles.cardTitle}>Community Impact Areas</h3>
+            <h3 style={styles.cardTitle}>{content.chartTitle}</h3>
           </div>
           <div style={styles.chartContainer}>
-            {communityImpactData.map((item, i) => (
-              <div key={item.id} style={styles.chartBarGroup}>
+            {(content.chartBars || []).map((item, i) => {
+              const progress = Math.max(0, Math.min(100, Number(item.value) || 0));
+              return (
+              <div key={item.id || `${item.label}-${i}`} style={styles.chartBarGroup}>
                 <div style={styles.barLabelRow}>
-                  <span>{item.area}</span>
-                  <span>{item.progress}%</span>
+                  <span>{item.label || item.area}</span>
+                  <span>{progress}%</span>
                 </div>
                 <div style={styles.barTrack}>
                   <div 
@@ -106,51 +155,52 @@ function ImpactTrackingPage({ setActiveNav }) {
                     style={{ 
                       ...styles.barFill, 
                       backgroundColor: item.color, 
-                      "--target-width": `${item.progress}%` 
+                      "--target-width": `${progress}%` 
                     }} 
                   />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
-          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>View Detailed Report</button>
+          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>{content.chartCtaLabel}</button>
         </div>
 
         {/* Environmental Metrics (Example: Crops Grown vs. CO2 Reduced) */}
         <div className="inner-blur-glass" style={styles.metricsCard}>
           <div style={styles.cardHeader}>
             <FaTractor style={styles.cardIcon} />
-            <h3 style={styles.cardTitle}>Environmental Metrics</h3>
+            <h3 style={styles.cardTitle}>{content.metricsTitle}</h3>
           </div>
           <div style={styles.metricsGrid}>
-            <div style={styles.metricItem}>
-              <FaLeaf style={styles.metricIcon} />
-              <span style={styles.metricValue}>150+ Tons</span>
-              <span style={styles.metricLabel}>Crops Grown</span>
-            </div>
-            <div style={styles.metricItem}>
-              <FaCloudMeatball style={styles.metricIcon} />
-              <span style={styles.metricValue}>100+ Tons</span>
-              <span style={styles.metricLabel}>CO₂ Reduced</span>
-            </div>
+            {(content.metrics || []).map((metric, index) => {
+              const Icon = impactIconMap[metric.iconKey] || FaLeaf;
+              return (
+                <div key={`${metric.label}-${index}`} style={styles.metricItem}>
+                  <Icon style={styles.metricIcon} />
+                  <span style={styles.metricValue}>{metric.value}</span>
+                  <span style={styles.metricLabel}>{metric.label}</span>
+                </div>
+              );
+            })}
           </div>
-          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>Analyze Trends</button>
+          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>{content.metricsCtaLabel}</button>
         </div>
 
         {/* People Reached (Visual) */}
         <div className="inner-blur-glass" style={styles.peopleReachedCard}>
           <div style={styles.cardHeader}>
             <FaUsers style={styles.cardIcon} />
-            <h3 style={styles.cardTitle}>People Reached</h3>
+            <h3 style={styles.cardTitle}>{content.peopleTitle}</h3>
           </div>
           <div style={styles.peopleCount}>
-            <span style={styles.peopleValue}>15,000+</span>
-            <span style={styles.peopleLabel}>Individuals Empowered</span>
+            <span style={styles.peopleValue}>{content.peopleValue}</span>
+            <span style={styles.peopleLabel}>{content.peopleLabel}</span>
           </div>
           <p style={styles.peopleDescription}>
-            Through workshops, direct support, and community programs, we've empowered thousands to embrace sustainable agriculture.
+            {content.peopleDescription}
           </p>
-          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>Explore Stories</button>
+          <button type="button" style={styles.ctaButton} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.035)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>{content.peopleCtaLabel}</button>
         </div>
       </div>
     </div>

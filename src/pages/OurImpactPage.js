@@ -5,56 +5,79 @@ const ourImpactData = [
   {
     category: "LGU Partnerships",
     name: "LGU Partnerships Dashboard",
-    icon: <FaHandshake style={{ color: "#15803d" }} />,
-    price: "42 Active LGUs",
+    iconKey: "handshake",
+    metric: "42 Active LGUs",
     description: "Collaborating with local government units to implement sustainable agricultural programs and community initiatives.",
-    stock: "Expanding Network",
-    sustainabilityBadge: "Community Impact",
+    status: "Expanding Network",
+    badge: "Community Impact",
     navTarget: "LGUPartnershipPage",
+    label: "LGU Partnerships",
+    visible: true,
   },
   {
     category: "Income Generation",
     name: "Income Generation Impact",
-    icon: <FaMoneyBillWave style={{ color: "#15803d" }} />,
-    price: "₱63M+ Annual GMV",
+    iconKey: "income",
+    metric: "₱63M+ Annual GMV",
     description: "Empowering micro-vendors and farmers through direct market access and sustainable income streams.",
-    stock: "Continuous Growth",
-    sustainabilityBadge: "Economic Empowerment",
+    status: "Continuous Growth",
+    badge: "Economic Empowerment",
     navTarget: "IncomeGenerationPage",
+    label: "Income Generation",
+    visible: true,
   },
   {
     category: "Native Seed Bank Program",
     name: "Native Seed Bank Management",
-    icon: <FaSeedling style={{ color: "#15803d" }} />,
-    price: "250+ Varieties",
+    iconKey: "seed",
+    metric: "250+ Varieties",
     description: "Preserving indigenous crop varieties and promoting biodiversity through community-managed seed banks.",
-    stock: "Growing Collection",
-    sustainabilityBadge: "Biodiversity",
+    status: "Growing Collection",
+    badge: "Biodiversity",
     navTarget: "NativeSeedBankPage",
+    label: "Native Seed Bank Program",
+    visible: true,
   },
   {
     category: "Impact Tracking",
     name: "Environmental Impact Tracking",
-    icon: <FaChartLine style={{ color: "#15803d" }} />,
-    price: "100+ Tons CO2 Reduced",
+    iconKey: "tracking",
+    metric: "100+ Tons CO2 Reduced",
     description: "Monitoring and reporting key environmental metrics to ensure transparency and drive sustainable practices.",
-    stock: "Real-time Data",
-    sustainabilityBadge: "Climate Action",
+    status: "Real-time Data",
+    badge: "Climate Action",
     navTarget: "ImpactTrackingPage",
+    label: "Impact Tracking",
+    visible: true,
   },
 ];
 
-const impactCategories = [
-  { icon: <FaHandshake fill="url(#iconGradient)" />, label: "LGU Partnerships", navTarget: "LGUPartnershipPage" },
-  { icon: <FaMoneyBillWave fill="url(#iconGradient)" />, label: "Income Generation", navTarget: "IncomeGenerationPage" },
-  { icon: <FaSeedling fill="url(#iconGradient)" />, label: "Native Seed Bank Program", navTarget: "NativeSeedBankPage" },
-  { icon: <FaChartLine fill="url(#iconGradient)" />, label: "Impact Tracking", navTarget: "ImpactTrackingPage" },
-];
+const impactIconMap = {
+  handshake: FaHandshake,
+  income: FaMoneyBillWave,
+  seed: FaSeedling,
+  tracking: FaChartLine,
+};
 
-function OurImpactPage({ setActiveNav }) {
+function OurImpactPage({ setActiveNav, impactSectorsConfig }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [hoveredItem, setHoveredItem] = useState(null); 
   const [isHoveredBack, setIsHoveredBack] = useState(false);
+  const pageInfo = {
+    badge: "Our Impact",
+    titleLead: "Driving Sustainable",
+    titleAccent: "Change",
+    description: "EcoEquity is committed to creating tangible positive change, from empowering local communities to fostering food security and environmental stewardship.",
+    ctaLabel: "Explore More Impact",
+    ctaNavTarget: "Learn More",
+    ...(impactSectorsConfig?.pageInfo || {}),
+  };
+  const managedImpacts = (Array.isArray(impactSectorsConfig?.sectors) ? impactSectorsConfig.sectors : ourImpactData)
+    .filter(impact => impact.visible !== false)
+    .map(impact => ({
+      ...impact,
+      Icon: impactIconMap[impact.iconKey] || FaLeaf,
+    }));
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -104,15 +127,15 @@ function OurImpactPage({ setActiveNav }) {
             </div>
             <div className="inner-blur-glass glass-hover-zoom-sm" style={{ ...styles.badge, ...(isMobile ? styles.badgeMobile : {}) }}>
               <span style={styles.badgeDot} />
-              <span style={styles.glassContentLayer}>Our Impact</span>
+              <span style={styles.glassContentLayer}>{pageInfo.badge}</span>
             </div>
           </div>
           <h1 style={{ ...styles.title, fontSize: "clamp(20px, 2.8vw, 32px)", textAlign: "left", ...(isMobile ? styles.titleMobile : {}), marginTop: "20px" }}>
-            Driving Sustainable <span style={styles.titleAccent}>Change</span>
+            {pageInfo.titleLead} <span style={styles.titleAccent}>{pageInfo.titleAccent}</span>
           </h1>
           <div style={{ ...styles.titleUnderline, marginLeft: 0, marginBottom: "16px", ...(isMobile ? { ...styles.titleUnderlineMobile, marginLeft: 0 } : {}) }}></div>
           <p style={{ ...styles.body, fontSize: "clamp(12px, 1.4vw, 15px)", marginBottom: "16px", textAlign: "left", ...(isMobile ? styles.bodyMobile : {}) }}>
-            EcoEquity is committed to creating tangible positive change, from empowering local communities to fostering food security and environmental stewardship.
+            {pageInfo.description}
           </p>
           <button
             type="button"
@@ -121,17 +144,19 @@ function OurImpactPage({ setActiveNav }) {
               ...(hoveredItem === "exploreImpactBtn" ? styles.primaryBtnHov : {}),
               marginTop: "10px",
             }}
-            onClick={() => setActiveNav && setActiveNav("Learn More")}
+            onClick={() => setActiveNav && setActiveNav(pageInfo.ctaNavTarget || "Learn More")}
             onMouseEnter={() => setHoveredItem("exploreImpactBtn")}
             onMouseLeave={() => setHoveredItem(null)}
           >
             <span aria-hidden="true" style={styles.primaryInnerBlur} />
-            <span style={styles.glassContentLayer}>Explore More Impact</span>
+            <span style={styles.glassContentLayer}>{pageInfo.ctaLabel}</span>
           </button>
           {/* Horizontal small glass container for categories */}
           <div className="inner-blur-glass hide-scroll" style={{ ...styles.emptyGlassContainer, ...(isMobile ? styles.emptyGlassContainerMobile : {}) }}>
-            {impactCategories.map((cat, i, arr) => (
-              <React.Fragment key={cat.label}>
+            {managedImpacts.map((cat, i, arr) => {
+              const Icon = cat.Icon;
+              return (
+              <React.Fragment key={cat.id || cat.label}>
                 <button
                   type="button"
                   style={{
@@ -146,21 +171,24 @@ function OurImpactPage({ setActiveNav }) {
                   onMouseEnter={() => setHoveredItem(`category-${i}`)}
                   onMouseLeave={() => setHoveredItem(null)}
                 >
-                  <span style={styles.categoryIcon}>{cat.icon}</span>
-                  <span style={styles.categoryLabel}>{cat.label}</span>
+                  <span style={styles.categoryIcon}><Icon fill="url(#iconGradient)" /></span>
+                  <span style={styles.categoryLabel}>{cat.label || cat.category}</span>
                 </button>
                 {i < arr.length - 1 && <div style={styles.categoryDivider} />}
               </React.Fragment>
-            ))}
+              );
+            })}
           </div>
 
         </div>
 
         <div className="hide-scroll" style={{ ...styles.rightColumn, ...(isMobile ? styles.rightColumnMobile : {}), paddingTop: 0 }}>
           <div style={{ ...styles.impactGrid, ...(isMobile ? styles.impactGridMobile : {}) }}>
-            {ourImpactData.map((impact, index) => (
+            {managedImpacts.map((impact, index) => {
+              const Icon = impact.Icon;
+              return (
               <div
-                key={impact.name}
+                key={impact.id || impact.name}
                 className="inner-blur-glass"
                 style={{
                   ...styles.impactCard,
@@ -173,16 +201,16 @@ function OurImpactPage({ setActiveNav }) {
                 <span aria-hidden="true" style={styles.impactCardInnerBlur} />
                 <div style={styles.impactImageContainer}>
                   <span style={{ fontSize: "48px", color: "#15803d", display: "flex" }}>
-                    {impact.icon}
+                    <Icon style={{ color: "#15803d" }} />
                   </span>
-                  <span style={styles.sustainabilityBadge}>{impact.sustainabilityBadge}</span>
+                  <span style={styles.sustainabilityBadge}>{impact.badge}</span>
                 </div>
                 <div style={{ ...styles.impactDetails, ...(isMobile ? styles.impactDetailsMobile : {}) }}>
                   <h3 style={styles.impactName}>{impact.name}</h3>
                   <p style={{ ...styles.impactDescription, ...(isMobile ? styles.impactDescriptionMobile : {}) }}>{impact.description}</p>
                   <div style={styles.impactMeta}>
-                    <span style={styles.impactPrice}>{impact.price}</span>
-                    <span style={styles.impactStock}>{impact.stock}</span>
+                    <span style={styles.impactPrice}>{impact.metric}</span>
+                    <span style={styles.impactStock}>{impact.status}</span>
                   </div>
                   <div style={{ ...styles.impactActions, ...(isMobile ? styles.impactActionsMobile : {}) }}>
                     <button 
@@ -197,13 +225,14 @@ function OurImpactPage({ setActiveNav }) {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Scroll Indicator Dots - Mobile Only */}
           {isMobile && (
             <div style={styles.indicatorRow}>
-              {ourImpactData.map((_, i) => (
+              {managedImpacts.map((_, i) => (
                 <div
                   key={i}
                   style={{
